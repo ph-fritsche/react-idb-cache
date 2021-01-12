@@ -1,5 +1,5 @@
 import { useMemo, useRef, useState } from 'react'
-import { clear, del, get, keys, set, createStore } from 'idb-keyval'
+import { clear, del, get, set, createStore, entries, setMany } from 'idb-keyval'
 import debugLib from 'debug'
 
 const debugLog = debugLib('react-idb-cached')
@@ -133,27 +133,18 @@ function clearCache(
     store: Parameters<typeof get>[1],
     expire: expire,
 ): void {
-    if (expire !== undefined) {
-        keys(store).then(
-            keys => Promise.all<IDBValidKey | undefined>(
-                keys.map(k => get(k, store)
-                    .then(obj => {
-                        if (!verifyEntry({obj}, expire)) {
-                            del(k, store)
-                            return k
-                        }
-                        return undefined
-                    }),
-                ),
-            ),
-        ).then(
-            keys => keys.forEach(k => {
-                if (k) {
-                    delete cache[String(k)]
-                }
-            }),
-        )
-    } else {
-        clear().then(() => Object.keys(cache).forEach(k => delete cache[k]))
-    }
+    (expire
+        ? entries(store)
+            .then(entries => setMany(entries
+                .filter(([, obj]) => !verifyEntry({obj}, expire))
+                .map(([key]) => [key, undefined]),
+            ))
+        : clear()
+    ).then(() => Object.entries(cache).forEach(([key, entry]) => {
+        if (entry.promise) {
+            delete entry.obj
+        } else {
+            delete cache[key]
+        }
+    }))
 }
