@@ -34,7 +34,7 @@ export function get(
         if(!verifyEntry(cache[key], expire)) {
             missing.push(key)
         }
-        data[key] = cache[key]?.obj
+        data[key] = cache[key]?.obj?.data
     })
 
     if (missing.length) {
@@ -60,6 +60,7 @@ export function get(
 
                 if (loaderPromise) {
                     stillMissing.forEach(key => {
+                        cache[key] = cache[key] ?? {}
                         cache[key].promise = loaderPromise.then(() => cache[key].obj)
                         loaderPromise.finally(() => { delete cache[key].promise})
                     })
@@ -75,6 +76,7 @@ export function get(
         idbPromise.then(rerender)
 
         missing.forEach((key, i) => {
+            cache[key] = cache[key] ?? {}
             cache[key].promise = idbPromise.then(values => values[i])
         })
     }
