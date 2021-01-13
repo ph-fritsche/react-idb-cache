@@ -22,6 +22,6 @@ module.exports = {
         '/node_modules/',
     ],
     setupFilesAfterEnv: [
-        // "<rootDir>/test/_setup.js",
+        '<rootDir>/test/_setup.js',
     ],
 }
