@@ -1,11 +1,11 @@
-interface reactCacheEntry {
+export interface reactCacheEntry {
     promise?: Promise<cachedObj | undefined>,
     obj?: cachedObj,
 }
 
-type reactCache = Record<string, reactCacheEntry>
+export type reactCache = Record<string, reactCacheEntry>
 
-type expire = number | ((obj: cachedObj) => boolean)
+export type expire = number | ((obj: cachedObj) => boolean)
 
 export interface cachedObj {
     data: unknown,

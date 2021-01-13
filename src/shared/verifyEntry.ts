@@ -1,4 +1,3 @@
-import type { } from '../useCached'
 import { expire, reactCacheEntry } from './cache'
 
 export function verifyEntry(entry: reactCacheEntry | undefined, expire: expire | undefined): boolean {
