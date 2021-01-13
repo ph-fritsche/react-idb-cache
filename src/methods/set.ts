@@ -7,7 +7,7 @@ export function set(
     rerender: () => void,
     recordData: Record<string, cachedObj['data']>,
     recordMeta?: Record<string, cachedObj['meta'] | null>,
-): void;
+): Promise<void>;
 export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
@@ -15,13 +15,13 @@ export function set(
     key: string,
     data: cachedObj['data'],
     meta?: cachedObj['meta'],
-): void;
-export function set(
+): Promise<void>;
+export async function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
     rerender: () => void,
     ...args: unknown[]
-): void {
+): Promise<void> {
     const record: Record<string, {data: cachedObj['data'], meta?: cachedObj['meta']} | undefined>
         = typeof args[0] === 'string'
             ? { [ args[0] ]: {data: args[1], meta: args[2]} }
@@ -47,6 +47,8 @@ export function set(
         return [key, undefined]
     })
 
+    await setMany(entries, store)
+
     entries.forEach(([key, obj]) => {
         if (obj) {
             cache[key] = cache[key] ?? {}
@@ -57,7 +59,6 @@ export function set(
             delete cache[key]
         }
     })
-    setMany(entries, store)
 
     rerender()
 }

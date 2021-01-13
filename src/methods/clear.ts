@@ -1,12 +1,12 @@
 import { entries, setMany, clear as idbClear } from 'idb-keyval'
 import { expire, reactCache, verifyEntry } from '../shared'
 
-export function clear(
+export async function clear(
     cache: reactCache,
     store: Parameters<typeof idbClear>[0],
     expire?: expire,
-): void {
-    (expire
+): Promise<void> {
+    await (expire
         ? entries(store)
             .then(entries => setMany(
                 entries
@@ -15,11 +15,13 @@ export function clear(
                 store,
             ))
         : idbClear(store)
-    ).then(() => Object.entries(cache).forEach(([key, entry]) => {
+    )
+
+    return Object.entries(cache).forEach(([key, entry]) => {
         if (entry.promise) {
             delete entry.obj
         } else {
             delete cache[key]
         }
-    }))
+    })
 }

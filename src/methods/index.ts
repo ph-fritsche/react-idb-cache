@@ -7,11 +7,11 @@ import { set } from './set'
 
 declare function boundClear(
     expire?: expire,
-): void;
+): Promise<void>;
 
 declare function boundDel(
     key: string,
-): void;
+): Promise<void>;
 
 declare function boundGet<T extends string, U = { [K in T]: unknown }>(
     keyArray: T[],
@@ -27,12 +27,12 @@ declare function boundGet(
 declare function boundSet(
     recordData: Record<string, cachedObj['data']>,
     recordMeta?: Record<string, cachedObj['meta'] | null>,
-): void;
+): Promise<void>;
 declare function boundSet(
     key: string,
     data: cachedObj['data'],
     meta?: cachedObj['meta'],
-): void;
+): Promise<void>;
 
 interface cachedApi {
     clear: typeof boundClear,

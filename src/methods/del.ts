@@ -1,11 +1,11 @@
 import { del as idbDel } from 'idb-keyval'
 import { reactCache } from '../shared'
 
-export function del(
+export async function del(
     cache: reactCache,
     store: Parameters<typeof idbDel>[1],
     key: string,
-): void {
+): Promise<void> {
+    await idbDel(key, store)
     delete cache[key]
-    idbDel(key, store)
 }
