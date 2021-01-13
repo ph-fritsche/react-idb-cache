@@ -59,8 +59,6 @@ export function get(
                 const loaderPromise = typeof loader === 'function' ? loader(stillMissing) : undefined
 
                 if (loaderPromise) {
-                    loaderPromise.then(rerender)
-
                     stillMissing.forEach(key => {
                         cache[key].promise = loaderPromise.then(() => cache[key].obj)
                         loaderPromise.finally(() => { delete cache[key].promise})
@@ -73,6 +71,8 @@ export function get(
                 }
             },
         )
+
+        idbPromise.then(rerender)
 
         missing.forEach((key, i) => {
             cache[key].promise = idbPromise.then(values => values[i])
