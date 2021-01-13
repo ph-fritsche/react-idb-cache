@@ -26,9 +26,9 @@ export function set(
         = typeof args[0] === 'string'
             ? { [ args[0] ]: {data: args[1], meta: args[2]} }
             : Object.assign({}, ...Object
-                .entries(args[1] as Record<string, cachedObj['data']>)
+                .entries(args[0] as Record<string, cachedObj['data']>)
                 .map(([key, data]) => {
-                    const meta = (args[2] as Record<string, cachedObj['meta']>)[key]
+                    const meta = (args[1] as Record<string, cachedObj['meta']> ?? {})[key]
                     return meta === null ? {[key]: undefined} : {[key]: {data, meta}}
                 }),
             )
@@ -49,8 +49,9 @@ export function set(
 
     entries.forEach(([key, obj]) => {
         if (obj) {
+            cache[key] = cache[key] ?? {}
             cache[key].obj = obj
-        } else if(cache[key].promise) {
+        } else if(cache[key]?.promise) {
             delete cache[key].obj
         } else {
             delete cache[key]

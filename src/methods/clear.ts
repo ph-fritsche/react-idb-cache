@@ -8,11 +8,13 @@ export function clear(
 ): void {
     (expire
         ? entries(store)
-            .then(entries => setMany(entries
-                .filter(([, obj]) => !verifyEntry({ obj }, expire))
-                .map(([key]) => [key, undefined]),
+            .then(entries => setMany(
+                entries
+                    .filter(([, obj]) => !verifyEntry({ obj }, expire))
+                    .map(([key]) => [key, undefined]),
+                store,
             ))
-        : idbClear()
+        : idbClear(store)
     ).then(() => Object.entries(cache).forEach(([key, entry]) => {
         if (entry.promise) {
             delete entry.obj

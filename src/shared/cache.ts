@@ -11,5 +11,6 @@ export interface cachedObj {
     data: unknown,
     meta: {
         date?: Date | string,
+        [k: string]: unknown,
     },
 }

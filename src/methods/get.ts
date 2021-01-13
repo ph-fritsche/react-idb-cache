@@ -62,12 +62,12 @@ export function get(
                     stillMissing.forEach(key => {
                         cache[key] = cache[key] ?? {}
                         cache[key].promise = loaderPromise.then(() => cache[key].obj)
-                        loaderPromise.finally(() => { delete cache[key].promise})
+                        loaderPromise.finally(() => { delete cache[key].promise })
                     })
 
                     return missing.map(key => stillMissing.includes(key) ? cache[key].promise : cache[key].obj)
                 } else {
-                    stillMissing.forEach(key => { delete cache[key] })
+                    stillMissing.forEach(key => { delete cache[key].promise })
                     return missing.map(key => cache[key]?.obj)
                 }
             },
