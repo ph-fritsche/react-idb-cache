@@ -1,6 +1,5 @@
 import { setMany } from 'idb-keyval'
-import { reactCache } from '../shared'
-import { cachedObj } from '../useCached'
+import { cachedObj, reactCache } from '../shared'
 
 export function set(
     cache: reactCache,

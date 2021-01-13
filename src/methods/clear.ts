@@ -4,7 +4,7 @@ import { expire, reactCache, verifyEntry } from '../shared'
 export function clear(
     cache: reactCache,
     store: Parameters<typeof idbClear>[0],
-    expire: expire,
+    expire?: expire,
 ): void {
     (expire
         ? entries(store)
