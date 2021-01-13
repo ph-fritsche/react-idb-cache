@@ -1,40 +1,83 @@
-import { get as idbGet } from 'idb-keyval'
+import { getMany } from 'idb-keyval'
 import { debugLog, expire, reactCache, verifyEntry } from '../shared'
-import { cachedObj } from '../useCached'
 
+export function get<T extends string, U = {[K in T]: unknown}>(
+    cache: reactCache,
+    store: Parameters<typeof getMany>[1],
+    rerender: () => void,
+    keyArray: T[],
+    loader?: (missingKeys: string[]) => Promise<void>,
+    expire?: expire,
+): U;
 export function get(
     cache: reactCache,
-    store: Parameters<typeof idbGet>[1],
+    store: Parameters<typeof getMany>[1],
     rerender: () => void,
     key: string,
-    loader: () => Promise<void>,
-    expire: expire | undefined,
-): unknown {
-    if (!verifyEntry(cache[key], expire)) {
-        debugLog('Get from idb: %s', key)
+    loader?: () => Promise<void>,
+    expire?: expire,
+): unknown;
+export function get(
+    cache: reactCache,
+    store: Parameters<typeof getMany>[1],
+    rerender: () => void,
+    keyOrKeys: string | string[],
+    loader?: (missingKeys: string[]) => Promise<void>,
+    expire?: expire,
+): unknown | Record<string, unknown> {
+    const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys]
 
-        cache[key].promise = idbGet(key, store).then(
+    const data: Record<string, unknown> = {}
+    const missing: string[] = []
+
+    keys.forEach(key => {
+        if(!verifyEntry(cache[key], expire)) {
+            missing.push(key)
+        }
+        data[key] = cache[key]?.obj
+    })
+
+    if (missing.length) {
+        debugLog('Get from idb: %s', missing.join(', '))
+
+        const idbPromise = getMany(missing, store).then(
             obj => {
-                debugLog.enabled && debugLog('  -> received "%s" from idb: %s', key, JSON.stringify(obj))
+                debugLog.enabled && debugLog(
+                    '  -> received from idb:\n%s',
+                    missing.map((k, i) => `\t${k}: ${JSON.stringify(obj[i])}`).join('\n'),
+                )
 
-                if (verifyEntry({ obj }, expire)) {
-                    cache[key] = { obj }
-                    rerender()
-                } else if (typeof (loader) === 'function') {
-                    return cache[key].promise = loader()
-                        .then(rerender)
-                        .finally(() => { delete cache[key].promise })
-                        .then(() => cache[key].obj)
+                const stillMissing: string[] = []
+                obj.forEach((obj, i) => {
+                    if (verifyEntry({ obj }, expire)) {
+                        cache[ missing[i] ] = { obj }
+                    } else {
+                        stillMissing.push(missing[i])
+                    }
+                })
+
+                const loaderPromise = typeof loader === 'function' ? loader(stillMissing) : undefined
+
+                if (loaderPromise) {
+                    loaderPromise.then(rerender)
+
+                    stillMissing.forEach(key => {
+                        cache[key].promise = loaderPromise.then(() => cache[key].obj)
+                        loaderPromise.finally(() => { delete cache[key].promise})
+                    })
+
+                    return missing.map(key => stillMissing.includes(key) ? cache[key].promise : cache[key].obj)
                 } else {
-                    delete cache[key]
+                    stillMissing.forEach(key => { delete cache[key] })
+                    return missing.map(key => cache[key]?.obj)
                 }
             },
-            reason => {
-                debugLog('Failed to get "%s" from idb: %s', key, reason)
-                delete cache[key].promise
-            },
-        ).then(r => (r as cachedObj | undefined) ?? cache[key].obj)
+        )
+
+        missing.forEach((key, i) => {
+            cache[key].promise = idbPromise.then(values => values[i])
+        })
     }
 
-    return cache[key]?.obj?.data
+    return Array.isArray(keyOrKeys) ? data : data[keys[0]]
 }
