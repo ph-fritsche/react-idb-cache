@@ -25,7 +25,8 @@ declare function boundGet(
 ): unknown;
 
 declare function boundSet(
-    record: Record<string, { data: cachedObj['data'], meta?: cachedObj['meta'] } | undefined>,
+    recordData: Record<string, cachedObj['data']>,
+    recordMeta?: Record<string, cachedObj['meta'] | null>,
 ): void;
 declare function boundSet(
     key: string,

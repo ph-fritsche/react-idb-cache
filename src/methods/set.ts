@@ -5,7 +5,8 @@ export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
     rerender: () => void,
-    record: Record<string, {data: cachedObj['data'], meta?: cachedObj['meta']} | undefined>,
+    recordData: Record<string, cachedObj['data']>,
+    recordMeta?: Record<string, cachedObj['meta'] | null>,
 ): void;
 export function set(
     cache: reactCache,
@@ -19,13 +20,20 @@ export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
     rerender: () => void,
-    keyOrRecord: string | Record<string, { data: cachedObj['data'], meta?: cachedObj['meta'] } | undefined>,
-    data?: cachedObj['data'],
-    meta?: cachedObj['meta'],
+    ...args: unknown[]
 ): void {
-    const record = typeof keyOrRecord === 'string' ? { [keyOrRecord]: {data, meta}} : keyOrRecord
+    const record: Record<string, {data: cachedObj['data'], meta?: cachedObj['meta']} | undefined>
+        = typeof args[0] === 'string'
+            ? { [ args[0] ]: {data: args[1], meta: args[2]} }
+            : Object.assign({}, ...Object
+                .entries(args[1] as Record<string, cachedObj['data']>)
+                .map(([key, data]) => {
+                    const meta = (args[2] as Record<string, cachedObj['meta']>)[key]
+                    return meta === null ? {[key]: undefined} : {[key]: {data, meta}}
+                }),
+            )
 
-    const entries = Object.entries(record).map(([key, obj]): [string, { data: cachedObj['data'], meta: cachedObj['meta'] } | undefined] => {
+    const entries = Object.entries(record).map(([key, obj]): [string, cachedObj | undefined] => {
         if (typeof obj === 'object') {
             const {data, meta} = obj
             return [key, {
