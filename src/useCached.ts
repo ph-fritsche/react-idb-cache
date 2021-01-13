@@ -28,7 +28,7 @@ export function useCached({dbName = 'Cached', storeName = 'keyval'}: {
 
     const api = useMemo(() => ({
         get: get.bind(undefined, cache, store, () => setState({})),
-        set: set.bind(undefined, cache, store),
+        set: set.bind(undefined, cache, store, () => setState({})),
         del: del.bind(undefined, cache, store),
         clear: clear.bind(undefined, cache, store),
     }), [cache, store, setState])

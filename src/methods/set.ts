@@ -5,11 +5,13 @@ import { cachedObj } from '../useCached'
 export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
+    rerender: () => void,
     record: Record<string, {data: cachedObj['data'], meta?: cachedObj['meta']} | undefined>,
 ): void;
 export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
+    rerender: () => void,
     key: string,
     data: cachedObj['data'],
     meta?: cachedObj['meta'],
@@ -17,6 +19,7 @@ export function set(
 export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
+    rerender: () => void,
     keyOrRecord: string | Record<string, { data: cachedObj['data'], meta?: cachedObj['meta'] } | undefined>,
     data?: cachedObj['data'],
     meta?: cachedObj['meta'],
@@ -47,4 +50,6 @@ export function set(
         }
     })
     setMany(entries, store)
+
+    rerender()
 }
