@@ -12,7 +12,7 @@ it('set value', async () => {
 })
 
 it('set multiple values', async () => {
-    const { cache, store, rerender, api } = await setupApi()
+    const { cache, store, rerender, api } = await setupApi({cacheValues: {foo: undefined}})
 
     await api.set({foo: 'bar', fuu: 'baz'})
 
@@ -84,4 +84,23 @@ it('unset per meta=null', async () => {
         undefined,
     ])
     expect(rerender).toBeCalledTimes(1)
+})
+
+it('preserve promises when unsetting entries', async () => {
+    const { cache, api } = await setupApi({
+        cacheEntries: {
+            foo: {
+                promise: new Promise(() => { return }),
+                obj: { data: 'foo', meta: {} },
+            },
+        },
+    })
+
+    await api.set({foo: 'any'}, {foo: null})
+
+    expect(cache).toEqual({
+        foo: {
+            promise: expect.any(Promise),
+        },
+    })
 })

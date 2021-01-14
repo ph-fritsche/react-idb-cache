@@ -1,8 +1,9 @@
 import { clear, createStore, get, set, setMany } from 'idb-keyval';
 import { createApi } from '../../src/methods';
-import { cachedObj, reactCache } from '../../src/shared';
+import { cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
 
-export async function setupApi({cacheObjects, cacheValues, idbObjects, idbValues}: {
+export async function setupApi({cacheEntries, cacheObjects, cacheValues, idbObjects, idbValues}: {
+    cacheEntries?: Record<string, reactCacheEntry>,
     cacheObjects?: Record<string, cachedObj>,
     cacheValues?: Record<string, unknown>,
     idbObjects?: Record<string, cachedObj>,
@@ -14,6 +15,9 @@ export async function setupApi({cacheObjects, cacheValues, idbObjects, idbValues
     api: ReturnType<typeof createApi>,
 }> {
     const cache: reactCache = {}
+    Object.entries(cacheEntries ?? {}).forEach(([key, entry]) => {
+        cache[key] = entry
+    })
     Object.entries(cacheObjects ?? {}).forEach(([key, obj]) => {
         cache[key] = {obj}
     })

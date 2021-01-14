@@ -51,3 +51,22 @@ it('clear values per expire', async () => {
         undefined,
     ])
 })
+
+it('preserve promises', async () => {
+    const { cache, api } = await setupApi({
+        cacheEntries: {
+            foo: {
+                promise: new Promise(() => { return }),
+                obj: {data: 'foo', meta: {}},
+            },
+        },
+    })
+
+    await api.clear()
+
+    expect(cache).toEqual({
+        foo: {
+            promise: expect.any(Promise),
+        },
+    })
+})

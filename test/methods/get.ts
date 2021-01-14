@@ -1,3 +1,4 @@
+import { cachedObj } from '../../src/shared'
 import { setupApi } from './_'
 
 it('get entry from cache', async () => {
@@ -78,33 +79,69 @@ it('call loader for expired (per callback) entries', async () => {
     })
     const expire = jest.fn(() => true)
 
-    expect(api.get(['foo', 'fuu'], loader, expire)).toEqual({ foo: 'bar', fuu: undefined })
+    expect(api.get(['foo', 'fuu', 'faa'], loader, expire)).toEqual({ foo: 'bar', fuu: undefined, faa: undefined})
     expect(rerender).not.toBeCalled()
     const fooPromise = cache.foo?.promise
     const fuuPromise = cache.fuu?.promise
+    const faaPromise = cache.faa?.promise
     expect(fooPromise).toBeInstanceOf(Promise)
     expect(fuuPromise).toBeInstanceOf(Promise)
+    expect(faaPromise).toBeInstanceOf(Promise)
 
     await new Promise(r => setTimeout(r, 10))
 
     expect(expire).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: 'bar', meta: { date: new Date('2001-02-03T04:05:06')}}))
     expect(expire).toHaveBeenNthCalledWith(2, expect.objectContaining({ data: 'baz', meta: { date: new Date('2001-02-03T04:05:06')}}))
+    expect(expire).toBeCalledTimes(2)
 
-    expect(loader).toBeCalledWith(['foo', 'fuu'])
+    expect(loader).toBeCalledWith(['foo', 'fuu', 'faa'])
     await expect(fooPromise).resolves.toEqual({ data: 'bar', meta: { date: new Date('2001-02-03T04:05:06') }})
     await expect(fuuPromise).resolves.toEqual({ data: 'BAZ', meta: { date: new Date('2011-12-13T14:15:16') }})
+    await expect(faaPromise).resolves.toEqual(undefined)
 })
 
 it('call loader for expired (per age) entries', async () => {
-    const { cache, rerender, api } = await setupApi({cacheValues: { foo: 'bar' }, idbValues: { fuu: 'baz' } })
+    const { cache, rerender, api } = await setupApi({
+        cacheObjects: {
+            faa: { data: 'a', meta: { date: new Date() }},
+            fee: { data: 'b', meta: { date: (new Date()).toString() }},
+            fii: { data: 'c', meta: { date: undefined }},
+        },
+        cacheValues: { foo: 'bar'},
+        idbValues: { fuu: 'baz' },
+    })
     const loader = jest.fn(() => Promise.resolve())
 
-    expect(api.get(['foo', 'fuu'], loader, 1)).toEqual({ foo: 'bar', fuu: undefined })
+    expect(api.get(['faa', 'fee', 'fii', 'foo', 'fuu'], loader, 10000)).toEqual({ faa: 'a', fee: 'b', fii: 'c', foo: 'bar', fuu: undefined })
     expect(rerender).not.toBeCalled()
+    expect(cache.faa?.promise).toBe(undefined)
+    expect(cache.fee?.promise).toBe(undefined)
+    expect(cache.fii?.promise).toBe(undefined)
     expect(cache.foo?.promise).toBeInstanceOf(Promise)
     expect(cache.fuu?.promise).toBeInstanceOf(Promise)
 
     await new Promise(r => setTimeout(r, 10))
 
     expect(loader).toBeCalledWith(['foo', 'fuu'])
+})
+
+it('skip fetching object when a promise is pending', async () => {
+    const { api } = await setupApi()
+    let resolveLoader: () => void = () => { return }
+    const loader = jest.fn(() => new Promise<void>(r => { resolveLoader = r}))
+
+    expect(api.get('foo', loader)).toEqual(undefined)
+    await new Promise(r => setTimeout(r, 1))
+    expect(loader).toBeCalledTimes(1)
+
+    expect(api.get('foo', loader)).toEqual(undefined)
+    await new Promise(r => setTimeout(r, 1))
+    expect(loader).toBeCalledTimes(1)
+
+    resolveLoader()
+    await new Promise(r => setTimeout(r, 1))
+
+    expect(api.get('foo', loader)).toEqual(undefined)
+    await new Promise(r => setTimeout(r, 1))
+    expect(loader).toBeCalledTimes(2)
 })
