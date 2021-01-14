@@ -1,4 +1,4 @@
-import { clear, createStore, get, set, setMany } from 'idb-keyval';
+import { clear, createStore, setMany } from 'idb-keyval';
 import { createApi } from '../../src/methods';
 import { cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
 

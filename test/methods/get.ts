@@ -1,4 +1,3 @@
-import { cachedObj } from '../../src/shared'
 import { setupApi } from './_'
 
 it('get entry from cache', async () => {
