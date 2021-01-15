@@ -2,7 +2,7 @@ import { createStore } from 'idb-keyval';
 import { cachedObj, expire, reactCache } from '../shared';
 import { clear } from './clear'
 import { del } from './del'
-import { get } from './get'
+import { get, getReturn } from './get'
 import { set } from './set'
 
 declare function boundClear(
@@ -13,16 +13,15 @@ declare function boundDel(
     key: string,
 ): Promise<void>;
 
-declare function boundGet<T extends string, U = { [K in T]: unknown }>(
-    keyArray: T[],
-    loader?: (missingKeys: string[]) => Promise<void>,
-    expire?: expire,
-): U;
-declare function boundGet(
-    key: string,
-    loader?: () => Promise<void>,
-    expire?: expire,
-): unknown;
+declare function boundGet<
+    K extends Parameters<typeof get>[3],
+    T extends Parameters<typeof get>[6],
+>(
+    keyOrKeys: K,
+    loader?: Parameters<typeof get>[4],
+    expire?: Parameters<typeof get>[5],
+    returnType?: T,
+): getReturn<K, T>;
 
 declare function boundSet(
     recordData: Record<string, cachedObj['data']>,

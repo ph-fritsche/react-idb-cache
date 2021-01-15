@@ -1,40 +1,72 @@
 import { getMany } from 'idb-keyval'
-import { debugLog, expire, reactCache, verifyEntry } from '../shared'
+import { cachedObj, debugLog, expire, reactCache, verifyEntry } from '../shared'
 
-export function get<T extends string, U = {[K in T]: unknown}>(
+type valueTypes = {
+    data: cachedObj['data'],
+    obj: cachedObj,
+}
+
+export type getValue<
+    T extends keyof valueTypes | undefined
+> = (T extends keyof valueTypes ? valueTypes[T] : valueTypes['data']) | undefined
+
+export type getReturn<
+    K extends string | string[],
+    T extends keyof valueTypes | undefined,
+> = K extends string[]
+    ? { [k in K[number]]: getValue<T> }
+    : getValue<T>
+
+export function get<
+    K extends string | string[],
+>(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
     rerender: () => void,
-    keyArray: T[],
-    loader?: (missingKeys: string[]) => Promise<void>,
-    expire?: expire,
-): U;
-export function get(
+    keyOrKeys: K,
+    loader?: (missingKeys: string[]) => Promise<void> | undefined,
+    expire?: expire | undefined,
+    returnType?: undefined,
+): getReturn<K, undefined>;
+export function get<
+    K extends string | string[],
+    T extends keyof valueTypes | undefined,
+>(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
     rerender: () => void,
-    key: string,
-    loader?: () => Promise<void>,
-    expire?: expire,
-): unknown;
-export function get(
+    keyOrKeys: K,
+    loader?: (missingKeys: string[]) => Promise<void> | undefined,
+    expire?: expire | undefined,
+    returnType?: T,
+): getReturn<K, T>;
+
+export function get<
+    K extends string | string[],
+    T extends keyof valueTypes | undefined,
+>(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
     rerender: () => void,
-    keyOrKeys: string | string[],
-    loader?: (missingKeys: string[]) => Promise<void>,
-    expire?: expire,
-): unknown | Record<string, unknown> {
+    keyOrKeys: K,
+    loader?: (missingKeys: string[]) => Promise<void> | undefined,
+    expire?: expire | undefined,
+    returnType?: T,
+): getReturn<K, T> {
     const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys]
 
-    const data: Record<string, unknown> = {}
+    const values: Record<string, getValue<T>> = {}
     const missing: string[] = []
 
     keys.forEach(key => {
         if(!verifyEntry(cache[key], expire)) {
             missing.push(key)
         }
-        data[key] = cache[key]?.obj?.data
+        if (returnType === 'obj') {
+            values[key] = cache[key]?.obj as getValue<T>
+        } else {
+            values[key] = cache[key]?.obj?.data as getValue<T>
+        }
     })
 
     if (missing.length) {
@@ -80,5 +112,5 @@ export function get(
         })
     }
 
-    return Array.isArray(keyOrKeys) ? data : data[keys[0]]
+    return (Array.isArray(keyOrKeys) ? values : values[keys[0]]) as getReturn<K, T>
 }

@@ -1,20 +1,28 @@
 import { setupApi } from './_'
 
-it('get entry from cache', async () => {
+it('get value from cache', async () => {
     const { rerender, api } = await setupApi({ cacheValues: { foo: 'bar' } })
 
     expect(api.get('foo')).toBe('bar')
     expect(rerender).not.toBeCalled()
 })
 
-it('get multiple entries from cache', async () => {
+it('get object from cache', async () => {
+    const { rerender, api } = await setupApi({ cacheValues: { foo: 'bar' } })
+
+    expect(api.get('foo', undefined, undefined, 'obj')).toEqual(expect.objectContaining({ data: 'bar' }))
+    expect(api.get('bar', undefined, undefined, 'obj')).toEqual(undefined)
+    expect(rerender).not.toBeCalled()
+})
+
+it('get multiple values from cache', async () => {
     const { rerender, api } = await setupApi({ cacheValues: { foo: 'bar', fuu: 'baz' } })
 
     expect(api.get(['foo', 'fuu'])).toEqual({foo: 'bar', fuu: 'baz'})
     expect(rerender).not.toBeCalled()
 })
 
-it('get entry from idb', async () => {
+it('get value from idb', async () => {
     const { cache, rerender, api } = await setupApi({ idbValues: { foo: 'bar' } })
 
     expect(api.get('foo')).toBe(undefined)
@@ -26,7 +34,7 @@ it('get entry from idb', async () => {
     expect(rerender).toBeCalledTimes(1)
 })
 
-it('get mutliple entries from idb', async () => {
+it('get mutliple values from idb', async () => {
     const { cache, rerender, api } = await setupApi({ idbValues: { foo: 'bar', fuu: 'baz' } })
 
     expect(api.get(['foo', 'fuu'])).toEqual({foo: undefined, fuu: undefined})
@@ -43,7 +51,7 @@ it('get mutliple entries from idb', async () => {
     expect(rerender).toBeCalledTimes(1)
 })
 
-it('get entries from cache and idb', async () => {
+it('get values from cache and idb', async () => {
     const { cache, rerender, api } = await setupApi({ cacheValues: {foo: 'bar'}, idbValues: { fuu: 'baz' } })
 
     expect(api.get(['foo', 'fuu'])).toEqual({ foo: 'bar', fuu: undefined })

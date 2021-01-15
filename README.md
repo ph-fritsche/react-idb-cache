@@ -50,6 +50,7 @@ Per default the hook uses a store `keyval` in database `Cached`.
   const { get } = useCached()
   get('indexKeyForValue')
 ```
+
 #### Get multiple values
 
 ```js
@@ -99,6 +100,21 @@ If a `loader` is present, it will be called with the missing keys and those keys
   const { get } = useCached()
   get('someKey', myLoader, 5000) // discard cached entry if meta.date is older that 5 seconds
 }
+```
+
+#### Get meta data
+
+```js
+  const { get } = useCached()
+  get('indexKeyForValue', undefined, undefined, 'obj')
+
+  // returns the cached data alongside the meta
+  {
+    data: 'foo',
+    meta: {
+      date: '2021-01-15T18:21:00.152Z',
+    }
+  }
 ```
 
 ### Set
