@@ -12,7 +12,19 @@ export function useCached({dbName = 'Cached', storeName = 'keyval'}: {
     const cache = useRef<reactCache>({}).current
     const [, setState] = useState({})
 
-    const api = useMemo(() => createApi(cache, store, () => setState({})), [cache, store, setState])
+    const mounted = useRef(false)
+    useEffect(() => {
+        mounted.current = true
+        return () => { mounted.current = false}
+    })
+
+    const api = useMemo(() => createApi(cache, store,
+        () => {
+            if (mounted.current) {
+                setState({})
+            }
+        },
+    ), [cache, store, setState])
 
     return api
 }
