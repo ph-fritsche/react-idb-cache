@@ -1,5 +1,5 @@
 import { createStore } from 'idb-keyval';
-import { cachedObj, expire, reactCache } from '../shared';
+import { cachedObj, expire, options, reactCache } from '../shared';
 import { clear } from './clear'
 import { del } from './del'
 import { get, getReturn } from './get'
@@ -26,11 +26,13 @@ declare function boundGet<
 declare function boundSet(
     recordData: Record<string, cachedObj['data']>,
     recordMeta?: Record<string, cachedObj['meta'] | null>,
+    options?: options,
 ): Promise<void>;
 declare function boundSet(
     key: string,
     data: cachedObj['data'],
     meta?: cachedObj['meta'],
+    options?: options,
 ): Promise<void>;
 
 interface cachedApi {

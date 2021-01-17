@@ -104,3 +104,12 @@ it('preserve promises when unsetting entries', async () => {
         },
     })
 })
+
+it('skip idb', async () => {
+    const { cache, store, api } = await setupApi()
+
+    await api.set('foo', 'bar', undefined, {skipIdb: true})
+
+    expect(cache.foo?.obj?.data).toBe('bar')
+    await expect(get('foo', store)).resolves.toBe(undefined)
+})

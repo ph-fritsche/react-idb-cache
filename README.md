@@ -188,6 +188,16 @@ You can also unset values in bulk action.
   })
 ```
 
+#### Skip idb
+
+You can set values in the react cache but not in IndexedDB:
+```js
+  const { set } = useCached()
+  set('foo', 'bar', undefined, {skipIdb: true})
+  //or
+  set({foo: 'bar'}, undefined, {skipIdb: true})
+```
+
 ### Delete
 
 ```js
