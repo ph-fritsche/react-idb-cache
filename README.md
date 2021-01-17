@@ -42,6 +42,32 @@ function MyComponent() {
 ```
 Per default the hook uses a store `keyval` in database `Cached`.
 
+#### Context
+
+The hooks cache values in a shared context.
+You can isolate some of the components so the cache is removed with the components by wrapping them with a Provider.
+```js
+  import { CacheProvider, useCached } from 'react-idb-cache'
+
+  function MyWrapperComponent() {
+    return <CacheProvider>
+      <MyComponentA/>
+      <MyComponentB/>
+    </CacheProvider>
+  }
+  function MyComponentA() {
+    const api = useCached()
+  }
+  function MyComponentB() {
+    const api = useCached()
+  }
+```
+
+You can also make a component use its own local cache:
+```js
+  const api = useCached({context: false})
+```
+
 ### Get
 
 #### Get a single value

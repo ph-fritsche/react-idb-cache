@@ -1,15 +1,29 @@
-import { useMemo, useRef, useState } from 'react'
+import { useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createStore } from 'idb-keyval'
 import { reactCache } from './shared'
 import { createApi } from './methods'
+import { CacheContext } from './context'
 
-export function useCached({dbName = 'Cached', storeName = 'keyval'}: {
+export function useCached({dbName = 'Cached', storeName = 'keyval', context = true}: {
     dbName?: string,
     storeName?: string,
+    context?: boolean,
 } = {}): ReturnType<typeof createApi> {
     const store = useRef(createStore(dbName, storeName)).current
 
-    const cache = useRef<reactCache>({}).current
+    const componentCache = useRef<reactCache>({}).current
+    const contextCache = useContext(CacheContext)
+
+    if (context) {
+        if (!contextCache[dbName]) {
+            contextCache[dbName] = {}
+        }
+        if (!contextCache[dbName][storeName]) {
+            contextCache[dbName][storeName] = {}
+        }
+    }
+    const cache = context ? contextCache[dbName][storeName] : componentCache
+
     const [, setState] = useState({})
 
     const mounted = useRef(false)
