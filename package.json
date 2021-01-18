@@ -1,5 +1,16 @@
 {
     "name": "react-idb-cache",
+    "description": "Cache for React",
+    "author": "Philipp Fritsche",
+    "repository": "https://github.com/ph-fritsche/react-idb-cache.git",
+    "keywords": [
+        "React",
+        "cache",
+        "idb",
+        "IndexedDB",
+        "asynchronous",
+        "fetch"
+    ],
     "main": "dist/index.js",
     "module": "dist/index.esm.js",
     "files": [
@@ -7,7 +18,7 @@
     ],
     "dependencies": {
         "debug": "^4.3.1",
-        "idb-keyval": "5.0.1"
+        "idb-keyval": "^5.0.1"
     },
     "devDependencies": {
         "@ph.fritsche/eslint-config": "^0.1.1",
