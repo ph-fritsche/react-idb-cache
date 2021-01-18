@@ -72,6 +72,7 @@ export function get<
     if (missing.length) {
         debugLog('Get from idb: %s', missing.join(', '))
 
+        let hit = false
         const idbPromise = getMany(missing, store).then(
             obj => {
                 debugLog.enabled && debugLog(
@@ -82,6 +83,7 @@ export function get<
                 const stillMissing: string[] = []
                 obj.forEach((obj, i) => {
                     if (verifyEntry({ obj }, expire)) {
+                        hit = true
                         cache[ missing[i] ] = { obj }
                     } else {
                         stillMissing.push(missing[i])
@@ -104,7 +106,7 @@ export function get<
             },
         )
 
-        idbPromise.then(rerender)
+        idbPromise.then(() => hit && rerender())
 
         missing.forEach((key, i) => {
             cache[key] = cache[key] ?? {}
