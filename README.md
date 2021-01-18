@@ -1,3 +1,6 @@
+[![action-release](https://img.shields.io/static/v1?logo=github-actions&logoColor=cyan&label=%F0%9F%9A%80&message=action-release&color=cyan)](https://github.com/ph-fritsche/action-release/)
+[![codecov](https://codecov.io/gh/ph-fritsche/react-idb-cache/branch/master/graph/badge.svg)](https://codecov.io/gh/ph-fritsche/react-idb-cache)
+
 # react-idb-cache
 
 This library helps on one of the trickier parts of writing React components:
