@@ -26,7 +26,7 @@ export function useCached({dbName = 'Cached', storeName = 'keyval', context = tr
 
     const [, setState] = useState({})
 
-    const mounted = useRef(false)
+    const mounted = useRef(true)
     useEffect(() => {
         mounted.current = true
         return () => { mounted.current = false}
