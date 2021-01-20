@@ -1,3 +1,4 @@
+import { waitFor } from '@testing-library/react'
 import { setupApi } from './_'
 
 it('get value from cache', async () => {
@@ -151,4 +152,25 @@ it('skip fetching object when a promise is pending', async () => {
     expect(api.get('foo', loader)).toEqual(undefined)
     await new Promise(r => setTimeout(r, 1))
     expect(loader).toBeCalledTimes(2)
+})
+
+it('rerender when pending promise is resolved', async () => {
+    const compA = await setupApi()
+    const compB = await setupApi({cache: compA.cache})
+    let resolveLoader: () => void = () => { return }
+    const loader = jest.fn(() => new Promise<void>(r => { resolveLoader = r }))
+
+    expect(compA.api.get('foo', loader)).toBe(undefined)
+    expect(compB.api.get('foo', loader)).toBe(undefined)
+
+    await waitFor(() => expect(resolveLoader).toBeTruthy())
+    expect(loader).toHaveBeenCalledTimes(1)
+
+    resolveLoader()
+    await new Promise(r => setTimeout(r, 1))
+
+    expect(compA.rerender).toBeCalledTimes(1)
+    expect(compA.api.get('foo')).toBe('foo')
+    expect(compB.rerender).toBeCalledTimes(1)
+    expect(compB.api.get('foo')).toBe('foo')
 })
