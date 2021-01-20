@@ -24,7 +24,7 @@ export function get<
     store: Parameters<typeof getMany>[1],
     rerender: () => void,
     keyOrKeys: K,
-    loader?: (missingKeys: string[]) => Promise<void> | undefined,
+    loader?: (missingKeys: string[]) => Promise<void>,
     expire?: expire | undefined,
     returnType?: undefined,
 ): getReturn<K, undefined>;
@@ -36,8 +36,8 @@ export function get<
     store: Parameters<typeof getMany>[1],
     rerender: () => void,
     keyOrKeys: K,
-    loader?: (missingKeys: string[]) => Promise<void> | undefined,
-    expire?: expire | undefined,
+    loader?: (missingKeys: string[]) => Promise<void>,
+    expire?: expire,
     returnType?: T,
 ): getReturn<K, T>;
 
@@ -49,11 +49,11 @@ export function get<
     store: Parameters<typeof getMany>[1],
     rerender: () => void,
     keyOrKeys: K,
-    loader?: (missingKeys: string[]) => Promise<void> | undefined,
-    expire?: expire | undefined,
+    loader?: (missingKeys: string[]) => Promise<void>,
+    expire?: expire,
     returnType?: T,
 ): getReturn<K, T> {
-    const keys = Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys]
+    const keys = (Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys]) as string[]
 
     const values: Record<string, getValue<T>> = {}
     const missing: string[] = []
