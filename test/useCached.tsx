@@ -109,3 +109,32 @@ it('rerender component on updated cache', async () => {
     expect(render).toReturnTimes(2)
     expect(render).toHaveNthReturnedWith(2, 'bar')
 })
+
+it('rerender multiple components waiting for the same value', async () => {
+    let loadingResolve: (() => void) | undefined = undefined
+    const loading = jest.fn((api: ReturnType<typeof useCached>) => new Promise<void>(res => {
+        api.set('foo', 'bar')
+        loadingResolve = res
+    }))
+    const renderA = jest.fn((api: ReturnType<typeof useCached>) => {
+        return api.get('foo', () => loading(api))
+    })
+    const renderB = jest.fn((api: ReturnType<typeof useCached>) => {
+        return api.get('foo', () => loading(api))
+    })
+    await setup([undefined, undefined], [renderA, renderB])
+
+    expect(renderA).toHaveBeenCalledTimes(1)
+    expect(renderB).toHaveBeenCalledTimes(1)
+
+    await waitFor(() => expect(loadingResolve).toBeTruthy())
+    expect(loading).toHaveBeenCalledTimes(1)
+    act(() => {
+        loadingResolve && loadingResolve()
+    })
+
+    expect(renderA).toReturnTimes(2)
+    expect(renderA).toHaveNthReturnedWith(2, 'bar')
+    expect(renderB).toReturnTimes(2)
+    expect(renderB).toHaveNthReturnedWith(2, 'bar')
+})

@@ -2,7 +2,8 @@ import { clear, createStore, setMany } from 'idb-keyval';
 import { createApi } from '../../src/methods';
 import { cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
 
-export async function setupApi({cacheEntries, cacheObjects, cacheValues, idbObjects, idbValues}: {
+export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, cacheValues, idbObjects, idbValues}: {
+    cache?: reactCache,
     cacheEntries?: Record<string, reactCacheEntry>,
     cacheObjects?: Record<string, cachedObj>,
     cacheValues?: Record<string, unknown>,
@@ -14,7 +15,7 @@ export async function setupApi({cacheEntries, cacheObjects, cacheValues, idbObje
     rerender: jest.Mock<() => void>,
     api: ReturnType<typeof createApi>,
 }> {
-    const cache: reactCache = {}
+    const cache: reactCache = reactCache ?? {}
     Object.entries(cacheEntries ?? {}).forEach(([key, entry]) => {
         cache[key] = entry
     })
