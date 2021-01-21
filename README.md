@@ -146,6 +146,12 @@ If a `loader` is present, it will be called with the missing keys and those keys
   }
 ```
 
+#### Automatic rerender
+
+If a component calls `get()` for some keys it subscribes to further changes to that entry.
+When this or any other components alters that entry through one of the writing methods described below,
+the component automatically rerenders.
+
 ### Set
 
 #### Set a single value
@@ -217,7 +223,8 @@ You can set values in the react cache but not in IndexedDB:
 ```
 
 #### Filter entries per callback
-Clears the cache and also deletes some data from IndexedDB.
+
+Deletes some data from cache and IndexedDB.
 ```js
   const { clear } = useCached()
   clear(({data, meta}) => meta.someMetaField > 2) // this will remove all entries with meta.someMetaField > 2
