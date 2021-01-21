@@ -2,17 +2,20 @@ import { get, getMany } from 'idb-keyval'
 import { setupApi } from './_'
 
 it('set value', async () => {
-    const { cache, store, rerender, api } = await setupApi()
+    const { cache, store, listener, api } = await setupApi({listen: ['foo']})
 
     await api.set('foo', 'bar')
 
     expect(cache.foo?.obj).toEqual(expect.objectContaining({data: 'bar'}))
     await expect(get('foo', store)).resolves.toEqual(expect.objectContaining({data: 'bar'}))
-    expect(rerender).toBeCalledTimes(1)
+    expect(listener).toBeCalledTimes(1)
 })
 
 it('set multiple values', async () => {
-    const { cache, store, rerender, api } = await setupApi({cacheValues: {foo: undefined}})
+    const { cache, store, listener, api } = await setupApi({
+        cacheValues: {foo: undefined},
+        listen: ['foo'],
+    })
 
     await api.set({foo: 'bar', fuu: 'baz'})
 
@@ -22,11 +25,11 @@ it('set multiple values', async () => {
         expect.objectContaining({data: 'bar'}),
         expect.objectContaining({data: 'baz'}),
     ])
-    expect(rerender).toBeCalledTimes(1)
+    expect(listener).toBeCalledTimes(1)
 })
 
 it('set value with meta', async () => {
-    const { cache, store, rerender, api } = await setupApi()
+    const { cache, store, listener, api } = await setupApi({listen: ['foo']})
 
     await api.set('foo', 'bar', {someMeta: 'someMetaValue'})
 
@@ -38,11 +41,11 @@ it('set value with meta', async () => {
         data: 'bar',
         meta: expect.objectContaining({ someMeta: 'someMetaValue' }),
     })
-    expect(rerender).toBeCalledTimes(1)
+    expect(listener).toBeCalledTimes(1)
 })
 
 it('set multiple values with meta', async () => {
-    const { cache, store, rerender, api } = await setupApi()
+    const { cache, store, listener, api } = await setupApi({listen: ['foo', 'fuu']})
 
     await api.set({foo: 'bar', fuu: 'baz'}, {
         foo: {someMeta: 'someMetaValue'},
@@ -67,11 +70,14 @@ it('set multiple values with meta', async () => {
             meta: expect.objectContaining({ someMeta: 'otherMetaValue' }),
         },
     ])
-    expect(rerender).toBeCalledTimes(1)
+    expect(listener).toBeCalledTimes(1)
 })
 
 it('unset per meta=null', async () => {
-    const { cache, store, rerender, api } = await setupApi({idbValues: {foo: 'bar', fuu: 'baz'}})
+    const { cache, store, listener, api } = await setupApi({
+        idbValues: {foo: 'bar', fuu: 'baz'},
+        listen: ['foo', 'fuu'],
+    })
 
     await api.set({ foo: 'newValue', fuu: 'doesNotMatter' }, {
         fuu: null,
@@ -83,7 +89,7 @@ it('unset per meta=null', async () => {
         expect.objectContaining({ data: 'newValue' }),
         undefined,
     ])
-    expect(rerender).toBeCalledTimes(1)
+    expect(listener).toBeCalledTimes(1)
 })
 
 it('preserve promises when unsetting entries', async () => {

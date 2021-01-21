@@ -1,9 +1,7 @@
 import { expire, reactCacheEntry } from './cache'
 
 export function verifyEntry(entry: reactCacheEntry | undefined, expire: expire | undefined): boolean {
-    if (entry?.promise instanceof Promise) {
-        return true
-    } else if (!entry?.obj) {
+    if (!entry?.obj) {
         return false
     }
 

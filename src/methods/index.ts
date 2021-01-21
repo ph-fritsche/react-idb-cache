@@ -14,12 +14,12 @@ declare function boundDel(
 ): Promise<void>;
 
 declare function boundGet<
-    K extends Parameters<typeof get>[3],
-    T extends Parameters<typeof get>[6],
+    K extends Parameters<typeof get>[4],
+    T extends Parameters<typeof get>[7],
 >(
     keyOrKeys: K,
-    loader?: Parameters<typeof get>[4],
-    expire?: Parameters<typeof get>[5],
+    loader?: Parameters<typeof get>[5],
+    expire?: Parameters<typeof get>[6],
     returnType?: T,
 ): getReturn<K, T>;
 
@@ -42,11 +42,11 @@ interface cachedApi {
     set: typeof boundSet,
 }
 
-export function createApi(cache: reactCache, store: ReturnType<typeof createStore>, rerender: () => void): cachedApi {
+export function createApi(cache: reactCache, store: ReturnType<typeof createStore>, id: string, rerender: () => void): cachedApi {
     return {
         clear: clear.bind(undefined, cache, store) as typeof boundClear,
         del: del.bind(undefined, cache, store) as typeof boundDel,
-        get: get.bind(undefined, cache, store, rerender) as typeof boundGet,
-        set: set.bind(undefined, cache, store, rerender) as typeof boundSet,
+        get: get.bind(undefined, cache, store, id, rerender) as typeof boundGet,
+        set: set.bind(undefined, cache, store) as typeof boundSet,
     }
 }
