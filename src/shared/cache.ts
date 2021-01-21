@@ -1,6 +1,7 @@
 export interface reactCacheEntry {
     promise?: Promise<cachedObj | undefined>,
     obj?: cachedObj,
+    listeners?: Record<string, () => void>,
 }
 
 export type reactCache = Record<string, reactCacheEntry>

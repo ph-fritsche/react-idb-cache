@@ -1,5 +1,5 @@
 import { getMany } from 'idb-keyval'
-import { cachedObj, debugLog, expire, reactCache, verifyEntry } from '../shared'
+import { addListener, cachedObj, debugLog, dispatch, expire, reactCache, setProperty, verifyEntry } from '../shared'
 
 type valueTypes = {
     data: cachedObj['data'],
@@ -22,6 +22,7 @@ export function get<
 >(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
+    id: string,
     rerender: () => void,
     keyOrKeys: K,
     loader?: (missingKeys: string[]) => Promise<void>,
@@ -34,6 +35,7 @@ export function get<
 >(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
+    id: string,
     rerender: () => void,
     keyOrKeys: K,
     loader?: (missingKeys: string[]) => Promise<void>,
@@ -47,6 +49,7 @@ export function get<
 >(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
+    id: string,
     rerender: () => void,
     keyOrKeys: K,
     loader?: (missingKeys: string[]) => Promise<void>,
@@ -55,24 +58,25 @@ export function get<
 ): getReturn<K, T> {
     const keys = (Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys]) as string[]
 
+    addListener(cache, keys, id, rerender)
+
     const values: Record<string, getValue<T>> = {}
     const missing: string[] = []
 
     keys.forEach(key => {
-        if(!verifyEntry(cache[key], expire)) {
+        if(!cache[key].promise && !verifyEntry(cache[key], expire)) {
             missing.push(key)
         }
         if (returnType === 'obj') {
-            values[key] = cache[key]?.obj as getValue<T>
+            values[key] = cache[key].obj as getValue<T>
         } else {
-            values[key] = cache[key]?.obj?.data as getValue<T>
+            values[key] = cache[key].obj?.data as getValue<T>
         }
     })
 
     if (missing.length) {
         debugLog('Get from idb: %s', missing.join(', '))
 
-        let hit = false
         const idbPromise = getMany(missing, store).then(
             obj => {
                 debugLog.enabled && debugLog(
@@ -81,14 +85,17 @@ export function get<
                 )
 
                 const stillMissing: string[] = []
+                const hit: string[] = []
                 obj.forEach((obj, i) => {
                     if (verifyEntry({ obj }, expire)) {
-                        hit = true
-                        cache[ missing[i] ] = { obj }
+                        setProperty(cache, [missing[i], 'obj'], obj)
+                        hit.push(missing[i])
                     } else {
                         stillMissing.push(missing[i])
                     }
                 })
+
+                dispatch(cache, hit)
 
                 const loaderPromise = typeof loader === 'function' ? loader(stillMissing) : undefined
 
@@ -106,11 +113,8 @@ export function get<
             },
         )
 
-        idbPromise.then(() => hit && rerender())
-
         missing.forEach((key, i) => {
-            cache[key] = cache[key] ?? {}
-            cache[key].promise = idbPromise.then(values => values[i])
+            setProperty(cache, [key, 'promise'], idbPromise.then(values => values[i]))
         })
     }
 

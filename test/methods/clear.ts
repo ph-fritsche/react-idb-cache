@@ -2,16 +2,22 @@ import { getMany, keys } from 'idb-keyval'
 import { setupApi } from './_'
 
 it('clear all values', async () => {
-    const { cache, store, api } = await setupApi({cacheValues: {foo: 'bar'}, idbValues: {fuu: 'baz'}})
+    const { cache, store, api, listener } = await setupApi({
+        cacheValues: {foo: 'bar'},
+        idbValues: {fuu: 'baz'},
+        listen: ['fuu'],
+    })
 
     await api.clear()
 
-    expect(Object.keys(cache)).toHaveLength(0)
+    expect(cache.foo?.obj).toBe(undefined)
+    expect(cache.fuu?.obj).toBe(undefined)
     await expect(keys(store)).resolves.toEqual([])
+    expect(listener).toHaveBeenCalledTimes(1)
 })
 
 it('clear values per expire', async () => {
-    const { cache, store, api } = await setupApi({
+    const { cache, store, api, listener } = await setupApi({
         cacheObjects: {
             foo: {
                 data: 'anything',
@@ -40,24 +46,38 @@ it('clear values per expire', async () => {
                 meta: { someMeta: 3 },
             },
         },
+        listen: ['foo', 'fuu', 'faa'],
     })
 
     await api.clear((obj) => (obj.meta.someMeta as number) > 1)
 
-    expect(Object.keys(cache)).toHaveLength(0)
+    expect(cache.foo.obj).toEqual({
+        data: 'anything',
+        meta: { someMeta: 1 },
+    })
+    expect(cache.fuu.obj).toBe(undefined)
+    expect(cache.faa.obj).toBe(undefined)
     await expect(getMany(['foo', 'fuu', 'faa'], store)).resolves.toEqual([
-        expect.any(Object),
+        {
+            data: 'anything',
+            meta: { someMeta: 1 },
+        },
         undefined,
         undefined,
     ])
+    expect(listener).toHaveBeenCalledTimes(1)
 })
 
-it('preserve promises', async () => {
+it('preserve promises and listeners', async () => {
     const { cache, api } = await setupApi({
         cacheEntries: {
             foo: {
                 promise: new Promise(() => { return }),
                 obj: {data: 'foo', meta: {}},
+            },
+            fuu: {
+                listeners: {'listenerId': () => { return }},
+                obj: {data: 'fuu', meta: {}},
             },
         },
     })
@@ -67,6 +87,9 @@ it('preserve promises', async () => {
     expect(cache).toEqual({
         foo: {
             promise: expect.any(Promise),
+        },
+        fuu: {
+            listeners: {'listenerId': expect.any(Function)},
         },
     })
 })

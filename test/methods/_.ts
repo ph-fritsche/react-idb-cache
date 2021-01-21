@@ -1,18 +1,20 @@
 import { clear, createStore, setMany } from 'idb-keyval';
 import { createApi } from '../../src/methods';
-import { cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
+import { addListener, cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
 
-export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, cacheValues, idbObjects, idbValues}: {
+export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, cacheValues, idbObjects, idbValues, listen}: {
     cache?: reactCache,
     cacheEntries?: Record<string, reactCacheEntry>,
     cacheObjects?: Record<string, cachedObj>,
     cacheValues?: Record<string, unknown>,
     idbObjects?: Record<string, cachedObj>,
     idbValues?: Record<string, unknown>,
+    listen?: string[],
 } = {}): Promise<{
     cache: reactCache,
     store: ReturnType<typeof createStore>,
     rerender: jest.Mock<() => void>,
+    listener: jest.Mock<() => void>,
     api: ReturnType<typeof createApi>,
 }> {
     const cache: reactCache = reactCache ?? {}
@@ -41,12 +43,19 @@ export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, c
 
     const rerender = jest.fn()
 
-    const api = createApi(cache, store, rerender)
+    const listener = jest.fn()
+    const listenerId = Math.random().toString(36)
+    if (listen) {
+        addListener(cache, listen, listenerId, listener)
+    }
+
+    const api = createApi(cache, store, 'testComponent', rerender)
 
     return {
         cache: cache as reactCache,
         store,
         rerender,
+        listener,
         api,
     }
 }

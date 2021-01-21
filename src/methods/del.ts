@@ -1,5 +1,5 @@
 import { del as idbDel } from 'idb-keyval'
-import { reactCache } from '../shared'
+import { delProperty, dispatch, reactCache } from '../shared'
 
 export async function del(
     cache: reactCache,
@@ -7,5 +7,7 @@ export async function del(
     key: string,
 ): Promise<void> {
     await idbDel(key, store)
-    delete cache[key]
+    delProperty(cache, [key, 'obj'])
+
+    dispatch(cache, [key])
 }

@@ -1,4 +1,6 @@
 export * from './cache'
 export * from './debug'
+export * from './event'
+export * from './object'
 export * from './options'
 export * from './verifyEntry'

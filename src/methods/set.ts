@@ -1,10 +1,9 @@
 import { setMany } from 'idb-keyval'
-import { cachedObj, options, reactCache } from '../shared'
+import { cachedObj, delProperty, dispatch, options, reactCache, setProperty } from '../shared'
 
 export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
-    rerender: () => void,
     recordData: Record<string, cachedObj['data']>,
     recordMeta?: Record<string, cachedObj['meta'] | null>,
     options?: options,
@@ -12,7 +11,6 @@ export function set(
 export function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
-    rerender: () => void,
     key: string,
     data: cachedObj['data'],
     meta?: cachedObj['meta'],
@@ -21,14 +19,12 @@ export function set(
 export async function set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
-    rerender: () => void,
     ...args: unknown[]
 ): Promise<void> {
     if (typeof args[0] == 'string') {
         return _set(
             cache,
             store,
-            rerender,
             { [args[0]]: { data: args[1], meta: args[2] } } as Record<string, cachedObj>,
             args[3] as options,
         )
@@ -36,7 +32,6 @@ export async function set(
         return _set(
             cache,
             store,
-            rerender,
             Object.assign({}, ...Object
                 .entries(args[0] as Record<string, cachedObj['data']>)
                 .map(([key, data]) => {
@@ -55,7 +50,6 @@ export async function set(
 async function _set(
     cache: reactCache,
     store: Parameters<typeof setMany>[1],
-    rerender: () => void,
     record: Record<string, { data: cachedObj['data'], meta?: cachedObj['meta'] } | undefined>,
     options: options = {},
 ): Promise<void> {
@@ -79,14 +73,11 @@ async function _set(
 
     entries.forEach(([key, obj]) => {
         if (obj) {
-            cache[key] = cache[key] ?? {}
-            cache[key].obj = obj
-        } else if(cache[key]?.promise) {
-            delete cache[key].obj
+            setProperty(cache, [key, 'obj'], obj)
         } else {
-            delete cache[key]
+            delProperty(cache, [key, 'obj'])
         }
     })
 
-    rerender()
+    dispatch(cache, entries.map(([key]) => key))
 }
