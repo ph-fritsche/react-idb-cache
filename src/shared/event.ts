@@ -16,10 +16,18 @@ export function removeListener(
     cache: reactCache,
     id: string,
     keys?: (keyof reactCache)[],
-): void {
-    (keys ?? Object.keys(cache)).forEach(key => {
-        delProperty(cache, [key, 'listeners', id])
+): (keyof reactCache)[] {
+    const removedKeys: (keyof reactCache)[] = []
+    const traverseKeys = (keys ?? Object.keys(cache))
+
+    traverseKeys.forEach(key => {
+        if (cache[key]?.listeners?.[id]) {
+            delProperty(cache, [key, 'listeners', id])
+            removedKeys.push(key)
+        }
     })
+
+    return removedKeys
 }
 
 export function dispatch(
@@ -27,6 +35,7 @@ export function dispatch(
     keys: (keyof reactCache)[],
 ): void {
     const listeners: reactCacheEntry['listeners'] = {}
+
     keys.forEach(key => {
         Object.entries(cache[key]?.listeners ?? {}).forEach(([id, listener]) => {
             listeners[id] = listener

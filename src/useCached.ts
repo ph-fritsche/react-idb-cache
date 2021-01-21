@@ -1,6 +1,6 @@
-import { useContext, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
 import { createStore } from 'idb-keyval'
-import { reactCache, removeListener } from './shared'
+import { addListener, reactCache, removeListener } from './shared'
 import { createApi } from './methods'
 import { CacheContext } from './context'
 
@@ -24,16 +24,19 @@ export function useCached({dbName = 'Cached', storeName = 'keyval', context = tr
     }
     const cache = context ? contextCache[dbName][storeName] : componentCache
 
+    const subscribedKeys = useRef<string[]>([])
     const id = useRef(Math.random().toString(36)).current
-    const [, setState] = useState({})
+    const [, _setState] = useState({})
+    const rerender = useCallback(() => _setState({}), [_setState])
 
     useEffect(() => {
+        addListener(cache, subscribedKeys.current, id, rerender)
         return () => {
-            removeListener(cache, id)
+            subscribedKeys.current = removeListener(cache, id)
         }
     })
 
-    const api = useMemo(() => createApi(cache, store, id, () => setState({})), [cache, store, id, setState])
+    const api = useMemo(() => createApi(cache, store, id, rerender), [cache, store, id, rerender])
 
     return api
 }

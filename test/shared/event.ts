@@ -40,8 +40,8 @@ it('remove listeners', () => {
         },
     }
 
-    removeListener(cache, 'listenerTestA', ['foo', 'baz'])
-    removeListener(cache, 'listenerTestB')
+    expect(removeListener(cache, 'listenerTestA', ['foo', 'baz'])).toEqual(['foo'])
+    expect(removeListener(cache, 'listenerTestB')).toEqual(['bar'])
 
     expect(cache).toEqual({
         bar: {
