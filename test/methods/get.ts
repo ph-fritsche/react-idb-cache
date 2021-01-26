@@ -138,17 +138,17 @@ it('skip fetching object when a promise is pending', async () => {
     const loader = jest.fn(() => new Promise<void>(r => { resolveLoader = r}))
 
     expect(api.get('foo', loader)).toEqual(undefined)
-    await new Promise(r => setTimeout(r, 1))
+    await new Promise(r => setTimeout(r, 2))
     expect(loader).toBeCalledTimes(1)
 
     expect(api.get('foo', loader)).toEqual(undefined)
-    await new Promise(r => setTimeout(r, 1))
+    await new Promise(r => setTimeout(r, 2))
     expect(loader).toBeCalledTimes(1)
 
     resolveLoader()
-    await new Promise(r => setTimeout(r, 1))
+    await new Promise(r => setTimeout(r, 2))
 
     expect(api.get('foo', loader)).toEqual(undefined)
-    await new Promise(r => setTimeout(r, 1))
+    await new Promise(r => setTimeout(r, 2))
     expect(loader).toBeCalledTimes(2)
 })
