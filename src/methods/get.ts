@@ -3,7 +3,7 @@ import { addListener, cachedObj, debugLog, dispatch, expire, reactCache, setProp
 
 type valueTypes = {
     data: cachedObj['data'],
-    obj: cachedObj,
+    obj: cachedObj & {valid: boolean},
 }
 
 export type getValue<
@@ -64,11 +64,12 @@ export function get<
     const missing: string[] = []
 
     keys.forEach(key => {
-        if(!cache[key].promise && !verifyEntry(cache[key], expire)) {
+        const valid = verifyEntry(cache[key], expire)
+        if(!cache[key].promise && !valid) {
             missing.push(key)
         }
         if (returnType === 'obj') {
-            values[key] = cache[key].obj as getValue<T>
+            values[key] = (cache[key].obj ? { ...cache[key].obj, valid } : undefined) as getValue<T>
         } else {
             values[key] = cache[key].obj?.data as getValue<T>
         }

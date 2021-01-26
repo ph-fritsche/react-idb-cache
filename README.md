@@ -138,11 +138,13 @@ If a `loader` is present, it will be called with the missing keys and those keys
   get('indexKeyForValue', undefined, undefined, 'obj')
 
   // returns the cached data alongside the meta
+  // also includes the result of the validation according to expire parameter
   {
     data: 'foo',
     meta: {
       date: '2021-01-15T18:21:00.152Z',
-    }
+    },
+    valid: true,
   }
 ```
 

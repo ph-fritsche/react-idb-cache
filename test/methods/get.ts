@@ -78,6 +78,44 @@ it('call loader for missing entries', async () => {
     expect(loader).toBeCalledWith(['faa'])
 })
 
+it('verify entries per callback', async () => {
+    const { api } = await setupApi({cacheValues: { foo: 'FOO', bar: 'BAR'}})
+
+    const expire = jest.fn(o => o.data === 'FOO')
+
+    const value = api.get(['foo', 'bar'], undefined, expire, 'obj')
+
+    expect(expire).toBeCalledTimes(2)
+    expect(expire).toHaveBeenNthCalledWith(1, expect.objectContaining({data: 'FOO'}))
+    expect(expire).toHaveBeenNthCalledWith(2, expect.objectContaining({data: 'BAR'}))
+    expect(value).toEqual({
+        foo: expect.objectContaining({data: 'FOO', valid: false}),
+        bar: expect.objectContaining({data: 'BAR', valid: true}),
+    })
+})
+
+it('verify entries per age', async () => {
+    const { api } = await setupApi({
+        cacheObjects: {
+            faa: { data: 'a', meta: { date: new Date() } },
+            fee: { data: 'b', meta: { date: (new Date()).toString() } },
+            fii: { data: 'c', meta: { date: undefined } },
+            foo: { data: 'd', meta: { date: new Date('2001-02-03T04:05:06Z') } },
+            fuu: { data: 'e', meta: { date: '2001-02-03T04:05:06Z' } },
+        },
+    })
+
+    const value = api.get(['faa', 'fee', 'fii', 'foo', 'fuu'], undefined, 10000, 'obj')
+
+    expect(value).toEqual({
+        'faa': expect.objectContaining({data: 'a', valid: true}),
+        'fee': expect.objectContaining({data: 'b', valid: true}),
+        'fii': expect.objectContaining({data: 'c', valid: true}),
+        'foo': expect.objectContaining({data: 'd', valid: false}),
+        'fuu': expect.objectContaining({data: 'e', valid: false}),
+    })
+})
+
 it('call loader for expired (per callback) entries', async () => {
     const { cache, rerender, api } = await setupApi({cacheValues: { foo: 'bar' }, idbValues: { fuu: 'baz' } })
     const loader = jest.fn(() => {
