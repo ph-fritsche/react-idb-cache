@@ -5,6 +5,8 @@ import { del } from './del'
 import { get, getReturn } from './get'
 import { set } from './set'
 
+export type { getReturn }
+
 declare function boundClear(
     expire?: expire,
 ): Promise<void>;
@@ -15,13 +17,14 @@ declare function boundDel(
 
 declare function boundGet<
     K extends Parameters<typeof get>[4],
-    T extends Parameters<typeof get>[7],
+    R extends Parameters<typeof get>[7],
+    T extends unknown = unknown,
 >(
     keyOrKeys: K,
     loader?: Parameters<typeof get>[5],
     expire?: Parameters<typeof get>[6],
-    returnType?: T,
-): getReturn<K, T>;
+    returnType?: R,
+): getReturn<K, R, T>;
 
 declare function boundSet(
     recordData: Record<string, cachedObj['data']>,

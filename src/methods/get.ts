@@ -1,24 +1,27 @@
 import { getMany } from 'idb-keyval'
 import { addListener, cachedObj, debugLog, dispatch, expire, reactCache, setProperty, verifyEntry } from '../shared'
 
-type valueTypes = {
-    data: cachedObj['data'],
-    obj: cachedObj & {valid: boolean},
+type returnTypes<T> = {
+    data: cachedObj<T>['data'],
+    obj: cachedObj<T> & {valid: boolean},
 }
 
 export type getValue<
-    T extends keyof valueTypes | undefined
-> = (T extends keyof valueTypes ? valueTypes[T] : valueTypes['data']) | undefined
+    R extends keyof returnTypes<T> | undefined,
+    T extends unknown = unknown
+> = (R extends keyof returnTypes<T> ? returnTypes<T>[R] : returnTypes<T>['data']) | undefined
 
 export type getReturn<
     K extends string | string[],
-    T extends keyof valueTypes | undefined,
+    R extends keyof returnTypes<T> | undefined,
+    T extends unknown = unknown,
 > = K extends string[]
-    ? { [k in K[number]]: getValue<T> }
-    : getValue<T>
+    ? { [k in K[number]]: getValue<R, T> }
+    : getValue<R, T>
 
 export function get<
     K extends string | string[],
+    T extends unknown = unknown,
 >(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
@@ -28,10 +31,11 @@ export function get<
     loader?: (missingKeys: string[]) => Promise<void>,
     expire?: expire | undefined,
     returnType?: undefined,
-): getReturn<K, undefined>;
+): getReturn<K, undefined, T>;
 export function get<
     K extends string | string[],
-    T extends keyof valueTypes | undefined,
+    R extends keyof returnTypes<T> | undefined,
+    T extends unknown = unknown,
 >(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
@@ -40,12 +44,13 @@ export function get<
     keyOrKeys: K,
     loader?: (missingKeys: string[]) => Promise<void>,
     expire?: expire,
-    returnType?: T,
-): getReturn<K, T>;
+    returnType?: R,
+): getReturn<K, R, T>;
 
 export function get<
     K extends string | string[],
-    T extends keyof valueTypes | undefined,
+    R extends keyof returnTypes<T> | undefined,
+    T extends unknown = unknown,
 >(
     cache: reactCache,
     store: Parameters<typeof getMany>[1],
@@ -54,13 +59,13 @@ export function get<
     keyOrKeys: K,
     loader?: (missingKeys: string[]) => Promise<void>,
     expire?: expire,
-    returnType?: T,
-): getReturn<K, T> {
+    returnType?: R,
+): getReturn<K, R, T> {
     const keys = (Array.isArray(keyOrKeys) ? keyOrKeys : [keyOrKeys]) as string[]
 
     addListener(cache, keys, id, rerender)
 
-    const values: Record<string, getValue<T>> = {}
+    const values: Record<string, getValue<R, T>> = {}
     const missing: string[] = []
 
     keys.forEach(key => {
@@ -69,9 +74,9 @@ export function get<
             missing.push(key)
         }
         if (returnType === 'obj') {
-            values[key] = (cache[key].obj ? { ...cache[key].obj, valid } : undefined) as getValue<T>
+            values[key] = (cache[key].obj ? { ...cache[key].obj, valid } : undefined) as getValue<R, T>
         } else {
-            values[key] = cache[key].obj?.data as getValue<T>
+            values[key] = cache[key].obj?.data as getValue<R, T>
         }
     })
 
@@ -119,5 +124,5 @@ export function get<
         })
     }
 
-    return (Array.isArray(keyOrKeys) ? values : values[keys[0]]) as getReturn<K, T>
+    return (Array.isArray(keyOrKeys) ? values : values[keys[0]]) as getReturn<K, R, T>
 }
