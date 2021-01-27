@@ -83,7 +83,7 @@ You can also make a component use its own local cache:
 In TypeScript you can declare the data type you get:
 ```ts
   const { get } = useCached()
-  get<number>('indexKeyForValue')
+  get<string, 'data', number>('indexKeyForValue') // is expected to be a number
 ```
 
 #### Get multiple values
