@@ -5,10 +5,7 @@ module.exports = {
         'src/**/*.{js,jsx,ts,tsx}',
     ],
     coveragePathIgnorePatterns: [],
-    testEnvironmentOptions: {
-        resources: 'usable',
-        runScripts: 'dangerously',
-    },
+    testEnvironment: 'jsdom',
     testMatch: [
         '<rootDir>/test/**/*.{js,jsx,ts,tsx}',
     ],
