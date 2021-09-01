@@ -1,16 +1,16 @@
-import { setMany } from 'idb-keyval'
+import { DBDriver } from '../driver/abstract'
 import { cachedObj, delProperty, dispatch, options, reactCache, setProperty } from '../shared'
 
 export function set(
     cache: reactCache,
-    store: Parameters<typeof setMany>[1],
+    driver: DBDriver,
     recordData: Record<string, cachedObj['data']>,
     recordMeta?: Record<string, cachedObj['meta'] | null>,
     options?: options,
 ): Promise<void>;
 export function set(
     cache: reactCache,
-    store: Parameters<typeof setMany>[1],
+    driver: DBDriver,
     key: string,
     data: cachedObj['data'],
     meta?: cachedObj['meta'],
@@ -18,20 +18,20 @@ export function set(
 ): Promise<void>;
 export async function set(
     cache: reactCache,
-    store: Parameters<typeof setMany>[1],
+    driver: DBDriver,
     ...args: unknown[]
 ): Promise<void> {
     if (typeof args[0] == 'string') {
         return _set(
             cache,
-            store,
+            driver,
             { [args[0]]: { data: args[1], meta: args[2] } } as Record<string, cachedObj>,
             args[3] as options,
         )
     } else {
         return _set(
             cache,
-            store,
+            driver,
             Object.assign({}, ...Object
                 .entries(args[0] as Record<string, cachedObj['data']>)
                 .map(([key, data]) => {
@@ -49,7 +49,7 @@ export async function set(
 
 async function _set(
     cache: reactCache,
-    store: Parameters<typeof setMany>[1],
+    driver: DBDriver,
     record: Record<string, { data: cachedObj['data'], meta?: cachedObj['meta'] } | undefined>,
     options: options = {},
 ): Promise<void> {
@@ -68,7 +68,7 @@ async function _set(
     })
 
     if (!options.skipIdb) {
-        await setMany(entries, store)
+        await driver.setMany(entries)
     }
 
     entries.forEach(([key, obj]) => {

@@ -29,7 +29,7 @@ async function setup(
         await clear(store)
     }
     function ClearComponent() {
-        const cache = useContext(CacheContext)
+        const {cache} = useContext(CacheContext)
         Object.keys(cache).forEach(k => { delete cache[k] })
         return null
     }

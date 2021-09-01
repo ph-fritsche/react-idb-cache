@@ -1,4 +1,4 @@
-import { createStore } from 'idb-keyval';
+import { DBDriver } from '../driver/abstract';
 import { cachedObj, expire, options, reactCache } from '../shared';
 import { clear } from './clear'
 import { del } from './del'
@@ -45,11 +45,11 @@ interface cachedApi {
     set: typeof boundSet,
 }
 
-export function createApi(cache: reactCache, store: ReturnType<typeof createStore>, id: string, rerender: () => void): cachedApi {
+export function createApi(cache: reactCache, driver: DBDriver, id: string, rerender: () => void): cachedApi {
     return {
-        clear: clear.bind(undefined, cache, store) as typeof boundClear,
-        del: del.bind(undefined, cache, store) as typeof boundDel,
-        get: get.bind(undefined, cache, store, id, rerender) as typeof boundGet,
-        set: set.bind(undefined, cache, store) as typeof boundSet,
+        clear: clear.bind(undefined, cache, driver) as typeof boundClear,
+        del: del.bind(undefined, cache, driver) as typeof boundDel,
+        get: get.bind(undefined, cache, driver, id, rerender) as typeof boundGet,
+        set: set.bind(undefined, cache, driver) as typeof boundSet,
     }
 }

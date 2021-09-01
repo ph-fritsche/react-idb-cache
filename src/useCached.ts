@@ -1,5 +1,4 @@
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react'
-import { createStore } from 'idb-keyval'
 import { addListener, reactCache, removeListener } from './shared'
 import { createApi } from './methods'
 import { CacheContext } from './context'
@@ -9,10 +8,8 @@ export function useCached({dbName = 'Cached', storeName = 'keyval', context = tr
     storeName?: string,
     context?: boolean,
 } = {}): ReturnType<typeof createApi> {
-    const store = useRef(createStore(dbName, storeName)).current
-
+    const { cache: contextCache, dbDriverFactory } = useContext(CacheContext)
     const componentCache = useRef<reactCache>({}).current
-    const contextCache = useContext(CacheContext)
 
     if (context) {
         if (!contextCache[dbName]) {
@@ -36,7 +33,10 @@ export function useCached({dbName = 'Cached', storeName = 'keyval', context = tr
         }
     })
 
-    const api = useMemo(() => createApi(cache, store, id, rerender), [cache, store, id, rerender])
+    const api = useMemo(
+        () => createApi(cache, dbDriverFactory(dbName, storeName), id, rerender),
+        [cache, dbDriverFactory, dbName, storeName, id, rerender],
+    )
 
     return api
 }

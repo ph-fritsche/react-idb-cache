@@ -71,6 +71,25 @@ You can also make a component use its own local cache:
   const api = useCached({context: false})
 ```
 
+#### DBDriver
+
+This library defaults to use [IndexedDB](https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API) as device level cache per `idb-keyval`.
+
+You can switch out the driver used for local cache in the context of a `CacheProvider`.
+
+```js
+import { CacheProvider } from 'react-idb-cache'
+import NullDB from 'react-idb-cache/driver/NullDB'
+
+function MyWrapperComponent() {
+  return <CacheProvider dbDriverFactory={NullDB}>
+    <MyComponent/>
+  </CacheProvider>
+}
+```
+
+> Supplying your own driver is possible but considered experimental as the `DBDriver` API might be subject to change in `minor` versions. If you'd like to add another local DB implementation, PRs are very much welcome!
+
 ### Get
 
 #### Get a single value

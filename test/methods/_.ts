@@ -1,4 +1,5 @@
 import { clear, createStore, setMany } from 'idb-keyval';
+import IndexedDB from '../../src/driver/IndexedDB';
 import { createApi } from '../../src/methods';
 import { addListener, cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
 
@@ -49,7 +50,7 @@ export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, c
         addListener(cache, listen, listenerId, listener)
     }
 
-    const api = createApi(cache, store, 'testComponent', rerender)
+    const api = createApi(cache, IndexedDB('test', 'teststore'), 'testComponent', rerender)
 
     return {
         cache: cache as reactCache,

@@ -1,4 +1,4 @@
-import { getMany } from 'idb-keyval'
+import { DBDriver } from '../driver/abstract'
 import { addListener, cachedObj, debugLog, dispatch, expire, reactCache, setProperty, verifyEntry } from '../shared'
 
 type returnTypes<T> = {
@@ -24,7 +24,7 @@ export function get<
     T extends unknown = unknown,
 >(
     cache: reactCache,
-    store: Parameters<typeof getMany>[1],
+    driver: DBDriver,
     id: string,
     rerender: () => void,
     keyOrKeys: K,
@@ -38,7 +38,7 @@ export function get<
     T extends unknown = unknown,
 >(
     cache: reactCache,
-    store: Parameters<typeof getMany>[1],
+    driver: DBDriver,
     id: string,
     rerender: () => void,
     keyOrKeys: K,
@@ -53,7 +53,7 @@ export function get<
     T extends unknown = unknown,
 >(
     cache: reactCache,
-    store: Parameters<typeof getMany>[1],
+    driver: DBDriver,
     id: string,
     rerender: () => void,
     keyOrKeys: K,
@@ -83,7 +83,7 @@ export function get<
     if (missing.length) {
         debugLog('Get from idb: %s', missing.join(', '))
 
-        const idbPromise = getMany(missing, store).then(
+        const idbPromise = driver.getMany(missing).then(
             obj => {
                 debugLog.enabled && debugLog(
                     '  -> received from idb:\n%s',

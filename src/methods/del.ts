@@ -1,12 +1,12 @@
-import { del as idbDel } from 'idb-keyval'
+import { DBDriver } from '../driver/abstract'
 import { delProperty, dispatch, reactCache } from '../shared'
 
 export async function del(
     cache: reactCache,
-    store: Parameters<typeof idbDel>[1],
+    driver: DBDriver,
     key: string,
 ): Promise<void> {
-    await idbDel(key, store)
+    await driver.del(key)
     delProperty(cache, [key, 'obj'])
 
     dispatch(cache, [key])

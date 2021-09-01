@@ -18,6 +18,35 @@
     "files": [
         "/dist"
     ],
+    "exports": {
+        ".": {
+            "node": "./dist/cjs/index.js",
+            "import": "./dist/esm/index.js",
+            "default": "./dist/cjs/index.js"
+        },
+        "./dist/*": "./dist/*.js",
+        "./driver/*": {
+            "node": "./dist/cjs/driver/*.js",
+            "import": "./dist/esm/driver/*.js",
+            "default": "./dist/cjs/driver/*.js"
+        }
+    },
+    "typesVersions": {
+        "*": {
+            "dist/types/*": [
+                "./dist/types/*"
+            ],
+            "dist/cjs/*": [
+                "./dist/types/*.d.ts"
+            ],
+            "dist/esm/*": [
+                "./dist/types/*.d.ts"
+            ],
+            "*": [
+                "./dist/types/*.d.ts"
+            ]
+        }
+    },
     "dependencies": {
         "debug": "^4.3.2",
         "idb-keyval": "^5.1.3"

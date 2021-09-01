@@ -1,20 +1,19 @@
-import { entries, setMany, clear as idbClear } from 'idb-keyval'
+import { DBDriver } from '../driver/abstract'
 import { delProperty, dispatch, expire, reactCache, verifyEntry } from '../shared'
 
 export async function clear(
     cache: reactCache,
-    store: Parameters<typeof idbClear>[0],
+    driver: DBDriver,
     expire?: expire,
 ): Promise<void> {
     await (expire
-        ? entries(store)
-            .then(entries => setMany(
+        ? driver.entries()
+            .then(entries => driver.setMany(
                 entries
                     .filter(([, obj]) => !verifyEntry({ obj }, expire))
                     .map(([key]) => [key, undefined]),
-                store,
             ))
-        : idbClear(store)
+        : driver.clear()
     )
 
     const keys: string[] = []
