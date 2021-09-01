@@ -256,3 +256,14 @@ Deletes some data from cache and IndexedDB.
   const { clear } = useCached()
   clear(({data, meta}) => meta.someMetaField > 2) // this will remove all entries with meta.someMetaField > 2
 ```
+
+### Entries
+
+You can get all entries cached in context or local DB:
+```js
+  const { entries } = useCached()
+  entries().map([key, data] => {
+    // ...
+  })
+```
+The component will automatically rerender if an entry in the cache is updated/deleted.

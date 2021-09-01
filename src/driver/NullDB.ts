@@ -1,4 +1,4 @@
-import { DBDriver, DBKey, DBValue } from './abstract';
+import { DBDriver, DBKey, DBValue } from './abstract'
 
 export default (): typeof NullDBDriver => NullDBDriver
 

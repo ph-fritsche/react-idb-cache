@@ -1,6 +1,6 @@
-import { expire, reactCacheEntry } from './cache'
+import { cachedObj, expire } from './cache'
 
-export function verifyEntry(entry: reactCacheEntry | undefined, expire: expire | undefined): boolean {
+export function verifyEntry(entry: {obj?: cachedObj} | undefined, expire: expire | undefined): boolean {
     if (!entry?.obj) {
         return false
     }

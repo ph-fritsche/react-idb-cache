@@ -1,5 +1,5 @@
 import { DBDriver } from '../driver/abstract'
-import { cachedObj, delProperty, dispatch, options, reactCache, setProperty } from '../shared'
+import { cachedObj, delProperty, dispatch, Keys, options, reactCache, setProperty } from '../shared'
 
 export function set(
     cache: reactCache,
@@ -71,13 +71,27 @@ async function _set(
         await driver.setMany(entries)
     }
 
-    entries.forEach(([key, obj]) => {
-        if (obj) {
-            setProperty(cache, [key, 'obj'], obj)
-        } else {
-            delProperty(cache, [key, 'obj'])
-        }
-    })
+    const updateKeys: (keyof reactCache)[] = []
+    for (const [key, obj] of entries) {
 
-    dispatch(cache, entries.map(([key]) => key))
+        if (obj) {
+            updateKeys.push(key)
+
+            setProperty(cache, [key, 'obj'], obj)
+            if (options.skipIdb) {
+                cache[key].isVolatile = true
+            }
+
+        } else if(cache[key]?.obj) {
+            updateKeys.push(key)
+
+            delProperty(cache, [key, 'obj'])
+            delProperty(cache, [key, 'isVolatile'])
+        }
+    }
+
+    if (updateKeys.length) {
+        updateKeys.push(Keys)
+        dispatch(cache, updateKeys)
+    }
 }

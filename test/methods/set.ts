@@ -1,3 +1,5 @@
+import NullDB from '../../src/driver/NullDB'
+import { Keys } from '../../src/shared'
 import { setupApi } from './_'
 
 it('set value', async () => {
@@ -117,4 +119,23 @@ it('skip idb', async () => {
 
     expect(cache.foo?.obj?.data).toBe('bar')
     await expect(driver.getMany(['foo'])).resolves.toEqual([undefined])
+})
+
+it('trigger Keys listener when setting entry', async () => {
+    const { api, listener } = await setupApi({
+        dbDriverFactory: NullDB,
+        listen: [Keys],
+    })
+
+    await api.set({ foo: 123 })
+
+    expect(listener).toBeCalledTimes(1)
+
+    await api.set({ foo: undefined }, {foo: null})
+
+    expect(listener).toBeCalledTimes(2)
+
+    await api.set({ foo: undefined }, {foo: null})
+
+    expect(listener).toBeCalledTimes(2)
 })

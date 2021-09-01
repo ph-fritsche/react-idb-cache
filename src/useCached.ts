@@ -21,7 +21,7 @@ export function useCached({dbName = 'Cached', storeName = 'keyval', context = tr
     }
     const cache = context ? contextCache[dbName][storeName] : componentCache
 
-    const subscribedKeys = useRef<string[]>([])
+    const subscribedKeys = useRef<(keyof reactCache)[]>([])
     const id = useRef(Math.random().toString(36)).current
     const [, _setState] = useState({})
     const rerender = useCallback(() => _setState({}), [_setState])

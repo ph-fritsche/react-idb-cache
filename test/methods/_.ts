@@ -21,7 +21,7 @@ export async function setupApi(
         dbDriverFactory?: DBDriverFactory
         idbObjects?: Record<string, cachedObj>,
         idbValues?: Record<string, unknown>,
-        listen?: string[],
+        listen?: (keyof reactCache)[],
     } = {},
 ): Promise<{
     cache: reactCache,
@@ -35,10 +35,10 @@ export async function setupApi(
         cache[key] = entry
     })
     Object.entries(cacheObjects ?? {}).forEach(([key, obj]) => {
-        cache[key] = {obj}
+        cache[key] = {obj, isVolatile: true}
     })
     Object.entries(cacheValues ?? {}).forEach(([key, data]) => {
-        cache[key] = {obj: { data, meta: { date: new Date('2001-02-03T04:05:06') } }}
+        cache[key] = {obj: { data, meta: { date: new Date('2001-02-03T04:05:06') } }, isVolatile: true}
     })
 
     const driver = dbDriverFactory('test', 'teststore')

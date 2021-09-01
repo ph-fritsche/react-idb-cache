@@ -1,18 +1,25 @@
+import NullDB from '../../src/driver/NullDB'
+import { Keys } from '../../src/shared'
 import { setupApi } from './_'
 
 it('clear all values', async () => {
-    const { cache, api, driver, listener } = await setupApi({
+    const { cache, api, listener } = await setupApi({
         cacheValues: {foo: 'bar'},
         idbValues: {fuu: 'baz'},
-        listen: ['fuu'],
+        listen: ['foo'],
     })
+
+    // this entry has no data that changes so the listener will not be called
+    const fuuListener = jest.fn()
+    cache.fuu = { listeners: {'fuu': fuuListener} }
 
     await api.clear()
 
     expect(cache.foo?.obj).toBe(undefined)
     expect(cache.fuu?.obj).toBe(undefined)
-    await expect(driver.keys()).resolves.toEqual([])
+
     expect(listener).toHaveBeenCalledTimes(1)
+    expect(fuuListener).not.toBeCalled()
 })
 
 it('clear values per expire', async () => {
@@ -83,12 +90,35 @@ it('preserve promises and listeners', async () => {
 
     await api.clear()
 
-    expect(cache).toEqual({
+    expect(cache).toEqual(expect.objectContaining({
         foo: {
             promise: expect.any(Promise),
         },
         fuu: {
             listeners: {'listenerId': expect.any(Function)},
         },
+    }))
+})
+
+it('trigger Keys listener when clearing', async () => {
+    const { api, listener } = await setupApi({
+        dbDriverFactory: NullDB,
+        cacheValues: {
+            foo: 123,
+            bar: 456,
+        },
+        listen: [Keys],
     })
+
+    await api.clear((v) => v.data === 123)
+
+    expect(listener).toBeCalledTimes(1)
+
+    await api.clear(() => false)
+
+    expect(listener).toBeCalledTimes(1)
+
+    await api.clear(() => true)
+
+    expect(listener).toBeCalledTimes(2)
 })

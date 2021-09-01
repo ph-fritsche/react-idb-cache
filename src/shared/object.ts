@@ -1,8 +1,8 @@
-export function setProperty(obj: Record<string, unknown>, keys: string[], value: unknown): void {
+export function setProperty(obj: Record<PropertyKey, unknown>, keys: PropertyKey[], value: unknown): void {
     for(
         let o = obj, i = 0;
         i < keys.length;
-        o = o[keys[i]] as Record<string, unknown>, i++
+        o = o[keys[i]] as Record<PropertyKey, unknown>, i++
     ) {
         if (o !== undefined && !(o instanceof Object) || Array.isArray(o)) {
             throw `Unexpected type at $obj.${keys.join('.')}`
@@ -15,13 +15,13 @@ export function setProperty(obj: Record<string, unknown>, keys: string[], value:
     }
 }
 
-export function delProperty(obj: Record<string, unknown>, keys: string[]): void {
-    const objects: Record<string, unknown>[] = []
+export function delProperty(obj: Record<PropertyKey, unknown>, keys: PropertyKey[]): void {
+    const objects: Record<PropertyKey, unknown>[] = []
     let o, i
     for(
         o = obj, i = 0;
         i < keys.length;
-        o = o[keys[i]] as Record<string, unknown>, i++
+        o = o[keys[i]] as Record<PropertyKey, unknown>, i++
     ) {
         if (o !== undefined && !(o instanceof Object) || Array.isArray(o)) {
             throw `Unexpected type at $obj.${keys.join('.')}`

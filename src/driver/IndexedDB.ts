@@ -1,5 +1,5 @@
-import { clear, createStore, del, entries, getMany, setMany } from 'idb-keyval';
-import { DBDriver, DBKey, DBValue } from './abstract';
+import { clear, createStore, del, entries, getMany, setMany } from 'idb-keyval'
+import { DBDriver, DBKey, DBValue } from './abstract'
 
 export default (dbName: string, storeName: string): IndexedDBDriver => new IndexedDBDriver(dbName, storeName)
 
