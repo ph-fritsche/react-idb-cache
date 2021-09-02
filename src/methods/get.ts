@@ -101,19 +101,26 @@ export function get<
                     }
                 })
 
+                for (const key of hit) {
+                    delete cache[key].promise
+                }
+
                 dispatch(cache, hit)
 
                 const loaderPromise = typeof loader === 'function' ? loader(stillMissing) : undefined
 
                 if (loaderPromise) {
-                    stillMissing.forEach(key => {
+                    for (const key of stillMissing) {
                         cache[key].promise = loaderPromise.then(() => cache[key].obj)
                         loaderPromise.finally(() => { delete cache[key].promise })
-                    })
+                    }
 
                     return missing.map(key => stillMissing.includes(key) ? cache[key].promise : cache[key].obj)
                 } else {
-                    stillMissing.forEach(key => { delete cache[key].promise })
+                    for (const key of stillMissing) {
+                        delete cache[key].promise
+                    }
+
                     return missing.map(key => cache[key].obj)
                 }
             },

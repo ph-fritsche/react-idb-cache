@@ -190,3 +190,26 @@ it('skip fetching object when a promise is pending', async () => {
     await new Promise(r => setTimeout(r, 2))
     expect(loader).toBeCalledTimes(2)
 })
+
+it('remove promise when resolved', async () => {
+    const { api, cache } = await setupApi({cacheValues: {foo: 123}, idbValues: {bar: 456}})
+    let resolveLoader: () => void = () => { return }
+    const loader = jest.fn(() => new Promise<void>(r => { resolveLoader = r}))
+
+    expect(api.get(['foo', 'bar', 'baz'], loader)).toEqual({foo: 123, bar: undefined, baz: undefined})
+    expect(cache.foo.promise).toBe(undefined)
+    expect(cache.bar.promise).toBeInstanceOf(Promise)
+    expect(cache.baz.promise).toBeInstanceOf(Promise)
+
+    await new Promise(r => setTimeout(r, 2))
+
+    expect(cache.bar.promise).toBe(undefined)
+    expect(cache.baz.promise).toBeInstanceOf(Promise)
+
+    resolveLoader()
+    await new Promise(r => setTimeout(r, 2))
+
+    expect(cache.foo.promise).toBe(undefined)
+    expect(cache.bar.promise).toBe(undefined)
+    expect(cache.baz.promise).toBe(undefined)
+})
