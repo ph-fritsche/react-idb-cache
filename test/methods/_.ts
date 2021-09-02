@@ -1,19 +1,31 @@
-import { clear, createStore, setMany } from 'idb-keyval';
-import IndexedDB from '../../src/driver/IndexedDB';
-import { createApi } from '../../src/methods';
-import { addListener, cachedObj, reactCache, reactCacheEntry } from '../../src/shared';
+import { DBDriver, DBDriverFactory } from '../../src/driver/abstract'
+import IndexedDB from '../../src/driver/IndexedDB'
+import { createApi } from '../../src/methods'
+import { addListener, cachedObj, reactCache, reactCacheEntry } from '../../src/shared'
 
-export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, cacheValues, idbObjects, idbValues, listen}: {
-    cache?: reactCache,
-    cacheEntries?: Record<string, reactCacheEntry>,
-    cacheObjects?: Record<string, cachedObj>,
-    cacheValues?: Record<string, unknown>,
-    idbObjects?: Record<string, cachedObj>,
-    idbValues?: Record<string, unknown>,
-    listen?: string[],
-} = {}): Promise<{
+export async function setupApi(
+    {
+        cache: reactCache,
+        cacheEntries,
+        cacheObjects,
+        cacheValues,
+        dbDriverFactory = IndexedDB,
+        idbObjects,
+        idbValues,
+        listen,
+    }: {
+        cache?: reactCache,
+        cacheEntries?: Record<string, reactCacheEntry>,
+        cacheObjects?: Record<string, cachedObj>,
+        cacheValues?: Record<string, unknown>,
+        dbDriverFactory?: DBDriverFactory
+        idbObjects?: Record<string, cachedObj>,
+        idbValues?: Record<string, unknown>,
+        listen?: string[],
+    } = {},
+): Promise<{
     cache: reactCache,
-    store: ReturnType<typeof createStore>,
+    driver: DBDriver,
     rerender: jest.Mock<() => void>,
     listener: jest.Mock<() => void>,
     api: ReturnType<typeof createApi>,
@@ -29,8 +41,8 @@ export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, c
         cache[key] = {obj: { data, meta: { date: new Date('2001-02-03T04:05:06') } }}
     })
 
-    const store = createStore('test', 'teststore')
-    await clear(store)
+    const driver = dbDriverFactory('test', 'teststore')
+    await driver.clear()
 
     const entries: [string, cachedObj][] = [
         ...Object.entries(idbObjects ?? {}),
@@ -39,7 +51,7 @@ export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, c
         ),
     ]
     if (entries.length) {
-        await setMany(entries, store)
+        await driver.setMany(entries)
     }
 
     const rerender = jest.fn()
@@ -50,11 +62,11 @@ export async function setupApi({cache: reactCache, cacheEntries, cacheObjects, c
         addListener(cache, listen, listenerId, listener)
     }
 
-    const api = createApi(cache, IndexedDB('test', 'teststore'), 'testComponent', rerender)
+    const api = createApi(cache, driver, 'testComponent', rerender)
 
     return {
         cache: cache as reactCache,
-        store,
+        driver,
         rerender,
         listener,
         api,

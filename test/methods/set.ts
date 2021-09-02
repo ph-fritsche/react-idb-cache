@@ -1,18 +1,17 @@
-import { get, getMany } from 'idb-keyval'
 import { setupApi } from './_'
 
 it('set value', async () => {
-    const { cache, store, listener, api } = await setupApi({listen: ['foo']})
+    const { api, cache, driver, listener } = await setupApi({listen: ['foo']})
 
     await api.set('foo', 'bar')
 
     expect(cache.foo?.obj).toEqual(expect.objectContaining({data: 'bar'}))
-    await expect(get('foo', store)).resolves.toEqual(expect.objectContaining({data: 'bar'}))
+    await expect(driver.getMany(['foo'])).resolves.toEqual([expect.objectContaining({data: 'bar'})])
     expect(listener).toBeCalledTimes(1)
 })
 
 it('set multiple values', async () => {
-    const { cache, store, listener, api } = await setupApi({
+    const { api, cache, driver, listener } = await setupApi({
         cacheValues: {foo: undefined},
         listen: ['foo'],
     })
@@ -21,7 +20,7 @@ it('set multiple values', async () => {
 
     expect(cache.foo?.obj).toEqual(expect.objectContaining({ data: 'bar' }))
     expect(cache.fuu?.obj).toEqual(expect.objectContaining({ data: 'baz' }))
-    await expect(getMany(['foo', 'fuu'], store)).resolves.toEqual([
+    await expect(driver.getMany(['foo', 'fuu'])).resolves.toEqual([
         expect.objectContaining({data: 'bar'}),
         expect.objectContaining({data: 'baz'}),
     ])
@@ -29,7 +28,7 @@ it('set multiple values', async () => {
 })
 
 it('set value with meta', async () => {
-    const { cache, store, listener, api } = await setupApi({listen: ['foo']})
+    const { api, cache, driver, listener } = await setupApi({listen: ['foo']})
 
     await api.set('foo', 'bar', {someMeta: 'someMetaValue'})
 
@@ -37,15 +36,15 @@ it('set value with meta', async () => {
         data: 'bar',
         meta: expect.objectContaining({someMeta: 'someMetaValue'}),
     })
-    await expect(get('foo', store)).resolves.toEqual({
+    await expect(driver.getMany(['foo'])).resolves.toEqual([{
         data: 'bar',
         meta: expect.objectContaining({ someMeta: 'someMetaValue' }),
-    })
+    }])
     expect(listener).toBeCalledTimes(1)
 })
 
 it('set multiple values with meta', async () => {
-    const { cache, store, listener, api } = await setupApi({listen: ['foo', 'fuu']})
+    const { api, cache, driver, listener } = await setupApi({listen: ['foo', 'fuu']})
 
     await api.set({foo: 'bar', fuu: 'baz'}, {
         foo: {someMeta: 'someMetaValue'},
@@ -60,7 +59,7 @@ it('set multiple values with meta', async () => {
         data: 'baz',
         meta: expect.objectContaining({someMeta: 'otherMetaValue' }),
     })
-    await expect(getMany(['foo', 'fuu'], store)).resolves.toEqual([
+    await expect(driver.getMany(['foo', 'fuu'])).resolves.toEqual([
         {
             data: 'bar',
             meta: expect.objectContaining({ someMeta: 'someMetaValue' }),
@@ -74,7 +73,7 @@ it('set multiple values with meta', async () => {
 })
 
 it('unset per meta=null', async () => {
-    const { cache, store, listener, api } = await setupApi({
+    const { api, cache, driver, listener } = await setupApi({
         idbValues: {foo: 'bar', fuu: 'baz'},
         listen: ['foo', 'fuu'],
     })
@@ -85,7 +84,7 @@ it('unset per meta=null', async () => {
 
     expect(cache.foo?.obj).toEqual(expect.objectContaining({ data: 'newValue' }))
     expect(cache.fuu?.obj).toEqual(undefined)
-    await expect(getMany(['foo', 'fuu'], store)).resolves.toEqual([
+    await expect(driver.getMany(['foo', 'fuu'])).resolves.toEqual([
         expect.objectContaining({ data: 'newValue' }),
         undefined,
     ])
@@ -112,10 +111,10 @@ it('preserve promises when unsetting entries', async () => {
 })
 
 it('skip idb', async () => {
-    const { cache, store, api } = await setupApi()
+    const { api, cache, driver } = await setupApi()
 
     await api.set('foo', 'bar', undefined, {skipIdb: true})
 
     expect(cache.foo?.obj?.data).toBe('bar')
-    await expect(get('foo', store)).resolves.toBe(undefined)
+    await expect(driver.getMany(['foo'])).resolves.toEqual([undefined])
 })

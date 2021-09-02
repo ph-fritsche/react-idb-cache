@@ -1,4 +1,3 @@
-import { get } from 'idb-keyval'
 import { setupApi } from './_'
 
 it('delete entry from cache', async () => {
@@ -14,13 +13,13 @@ it('delete entry from cache', async () => {
 })
 
 it('delete entry from idb', async () => {
-    const { store, api, listener } = await setupApi({
+    const { api, driver, listener } = await setupApi({
         idbValues: { foo: 'bar' },
         listen: ['foo'],
     })
 
     await api.del('foo')
 
-    expect(await get('foo', store)).toBe(undefined)
+    expect(await driver.getMany(['foo'])).toEqual([undefined])
     expect(listener).toHaveBeenCalledTimes(1)
 })

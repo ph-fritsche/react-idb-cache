@@ -1,8 +1,7 @@
-import { getMany, keys } from 'idb-keyval'
 import { setupApi } from './_'
 
 it('clear all values', async () => {
-    const { cache, store, api, listener } = await setupApi({
+    const { cache, api, driver, listener } = await setupApi({
         cacheValues: {foo: 'bar'},
         idbValues: {fuu: 'baz'},
         listen: ['fuu'],
@@ -12,12 +11,12 @@ it('clear all values', async () => {
 
     expect(cache.foo?.obj).toBe(undefined)
     expect(cache.fuu?.obj).toBe(undefined)
-    await expect(keys(store)).resolves.toEqual([])
+    await expect(driver.keys()).resolves.toEqual([])
     expect(listener).toHaveBeenCalledTimes(1)
 })
 
 it('clear values per expire', async () => {
-    const { cache, store, api, listener } = await setupApi({
+    const { cache, api, driver, listener } = await setupApi({
         cacheObjects: {
             foo: {
                 data: 'anything',
@@ -57,7 +56,7 @@ it('clear values per expire', async () => {
     })
     expect(cache.fuu.obj).toBe(undefined)
     expect(cache.faa.obj).toBe(undefined)
-    await expect(getMany(['foo', 'fuu', 'faa'], store)).resolves.toEqual([
+    await expect(driver.getMany(['foo', 'fuu', 'faa'])).resolves.toEqual([
         {
             data: 'anything',
             meta: { someMeta: 1 },
