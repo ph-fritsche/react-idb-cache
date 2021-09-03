@@ -42,9 +42,10 @@ export function CacheProvider(
     {
         dbDriverFactory = lazyIndexedDB,
         children,
-    }: React.PropsWithChildren<{
+    }: {
+        children: React.ReactNode
         dbDriverFactory?: DBDriverFactory
-    }>,
+    },
 ): React.ReactElement {
     const cache = useRef<CacheContext['cache']>({}).current
     const context: CacheContext = useMemo(() => ({cache, dbDriverFactory}), [cache, dbDriverFactory])
