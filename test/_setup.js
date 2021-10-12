@@ -1,7 +1,10 @@
-import fakeIndexDB from 'fake-indexeddb'
+import 'fake-indexeddb/auto'
+import FDBFactory from 'fake-indexeddb/lib/FDBFactory'
+import { resetConnections } from '../src/driver/IndexedDB'
 
-beforeEach(() => {
-    global.indexedDB = fakeIndexDB
+beforeEach(async () => {
+    global.indexedDB = new FDBFactory()
+    await resetConnections()
 })
 
 jest.mock('debug', () => ({

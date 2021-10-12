@@ -1,5 +1,7 @@
 import { setupApi } from './_'
 
+const wait = () => new Promise(r => setTimeout(r, 10))
+
 it('get value from cache', async () => {
     const { rerender, api } = await setupApi({ cacheValues: { foo: 'bar' } })
 
@@ -133,7 +135,7 @@ it('call loader for expired (per callback) entries', async () => {
     expect(fuuPromise).toBeInstanceOf(Promise)
     expect(faaPromise).toBeInstanceOf(Promise)
 
-    await new Promise(r => setTimeout(r, 10))
+    await wait()
 
     expect(expire).toHaveBeenNthCalledWith(1, expect.objectContaining({ data: 'bar', meta: { date: new Date('2001-02-03T04:05:06')}}))
     expect(expire).toHaveBeenNthCalledWith(2, expect.objectContaining({ data: 'baz', meta: { date: new Date('2001-02-03T04:05:06')}}))
@@ -165,7 +167,7 @@ it('call loader for expired (per age) entries', async () => {
     expect(cache.foo?.promise).toBeInstanceOf(Promise)
     expect(cache.fuu?.promise).toBeInstanceOf(Promise)
 
-    await new Promise(r => setTimeout(r, 10))
+    await wait()
 
     expect(loader).toBeCalledWith(['foo', 'fuu'])
 })
@@ -176,18 +178,18 @@ it('skip fetching object when a promise is pending', async () => {
     const loader = jest.fn(() => new Promise<void>(r => { resolveLoader = r}))
 
     expect(api.get('foo', loader)).toEqual(undefined)
-    await new Promise(r => setTimeout(r, 2))
+    await wait()
     expect(loader).toBeCalledTimes(1)
 
     expect(api.get('foo', loader)).toEqual(undefined)
-    await new Promise(r => setTimeout(r, 2))
+    await wait()
     expect(loader).toBeCalledTimes(1)
 
     resolveLoader()
-    await new Promise(r => setTimeout(r, 2))
+    await wait()
 
     expect(api.get('foo', loader)).toEqual(undefined)
-    await new Promise(r => setTimeout(r, 2))
+    await wait()
     expect(loader).toBeCalledTimes(2)
 })
 
@@ -201,13 +203,13 @@ it('remove promise when resolved', async () => {
     expect(cache.bar.promise).toBeInstanceOf(Promise)
     expect(cache.baz.promise).toBeInstanceOf(Promise)
 
-    await new Promise(r => setTimeout(r, 2))
+    await wait()
 
     expect(cache.bar.promise).toBe(undefined)
     expect(cache.baz.promise).toBeInstanceOf(Promise)
 
     resolveLoader()
-    await new Promise(r => setTimeout(r, 2))
+    await wait()
 
     expect(cache.foo.promise).toBe(undefined)
     expect(cache.bar.promise).toBe(undefined)

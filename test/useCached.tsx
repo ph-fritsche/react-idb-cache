@@ -1,8 +1,7 @@
-import React, { useContext } from 'react'
+import React from 'react'
 import { act, render, waitFor } from '@testing-library/react'
 import { useCached } from '../src'
-import { clear, createStore } from 'idb-keyval'
-import { CacheContext } from '../src/context'
+import { CacheProvider } from '../src/context'
 
 async function setup(
     propsArray: Parameters<typeof useCached>[0][] = [undefined],
@@ -23,21 +22,9 @@ async function setup(
         return null
     }
 
-    // clear IndexedDb and default reactCache to get a fresh start
-    for (const p of propsArray) {
-        const store = createStore(p?.dbName ?? 'Cached', p?.storeName ?? 'keyval')
-        await clear(store)
-    }
-    function ClearComponent() {
-        const {cache} = useContext(CacheContext)
-        Object.keys(cache).forEach(k => { delete cache[k] })
-        return null
-    }
-    render(<ClearComponent/>)
-
-    render(<>
+    render(<CacheProvider key={Math.random().toString(36)}>
         {propsArray.map((p, i) => <TestComponent key={i} i={i} p={p} r={renderArray[i]}/>)}
-    </>)
+    </CacheProvider>)
 
     return { getHook: (i = 0) => hook[i] }
 }
@@ -67,10 +54,7 @@ it('provide api with custom store', async () => {
 it('get and set without context', async () => {
     const { getHook } = await setup([{context: false}, {context: false}])
 
-    await act(async () => {
-        getHook(0).set('foo', 'bar')
-        await clear()
-    })
+    await act(() => getHook(0).set('foo', 'bar'))
 
     expect(getHook(0).get('foo')).toBe('bar')
     expect(getHook(1).get('foo')).toBe(undefined)
@@ -79,10 +63,7 @@ it('get and set without context', async () => {
 it('get and set with context', async () => {
     const { getHook } = await setup([{context: true}, {context: true}])
 
-    await act(async () => {
-        getHook(0).set('foo', 'bar')
-        await clear()
-    })
+    await act(() => getHook(0).set('foo', 'bar'))
 
     expect(getHook(0).get('foo')).toBe('bar')
     expect(getHook(1).get('foo')).toBe('bar')
@@ -92,8 +73,9 @@ it('rerender component on updated cache', async () => {
     let loadingResolve: (() => void) | undefined = undefined
     const render = jest.fn((api: ReturnType<typeof useCached>) => {
         return api.get('foo', async () => new Promise(res => {
-            api.set('foo', 'bar')
-            loadingResolve = res
+            api.set('foo', 'bar').then(() => {
+                loadingResolve = res
+            })
         }))
     })
     await setup([undefined], [render])
@@ -113,8 +95,9 @@ it('rerender component on updated cache', async () => {
 it('rerender multiple components waiting for the same value', async () => {
     let loadingResolve: (() => void) | undefined = undefined
     const loading = jest.fn((api: ReturnType<typeof useCached>) => new Promise<void>(res => {
-        api.set('foo', 'bar')
-        loadingResolve = res
+        api.set('foo', 'bar').then(() => {
+            loadingResolve = res
+        })
     }))
     const renderA = jest.fn((api: ReturnType<typeof useCached>) => {
         return api.get('foo', () => loading(api))
